@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type Template = "classic" | "modern" | "calm" | "neural" | "compiler" | "blueprint";
+type Template = "classic" | "modern" | "calm" | "neural" | "compiler" | "blueprint" | "markdown" | "sidebar" | "timeline";
 
 type ResumeData = {
   name: string;
@@ -73,6 +73,9 @@ const templateMeta: { id: Template; name: string; note: string; color: string }[
   { id: "neural", name: "神经元", note: "AI / 算法", color: "#6c4ff8" },
   { id: "compiler", name: "编译器", note: "后端 / 架构", color: "#087f5b" },
   { id: "blueprint", name: "工程蓝", note: "全栈 / 研发", color: "#155eef" },
+  { id: "markdown", name: "文档流", note: "Markdown / ATS", color: "#222222" },
+  { id: "sidebar", name: "深栈", note: "双栏 / 技术栈", color: "#173f3b" },
+  { id: "timeline", name: "时序", note: "时间轴 / 资深", color: "#b45309" },
 ];
 
 const sectionFields = [
@@ -204,6 +207,59 @@ export default function ResumeStudio() {
     </aside>
   );
 
+  const resumeHeader = (
+    <header className="resume-header">
+      <div className="name-block"><Editable value={data.name} onChange={(v) => update("name", v)} className="resume-name" /><Editable value={data.title} onChange={(v) => update("title", v)} className="resume-title" /></div>
+      <div className="contact-grid">
+        <span>⌖ <Editable value={data.location} onChange={(v) => update("location", v)} /></span>
+        <span>◍ <Editable value={data.phone} onChange={(v) => update("phone", v)} /></span>
+        <span>✉ <Editable value={data.email} onChange={(v) => update("email", v)} /></span>
+        <span>◎ <Editable value={data.website} onChange={(v) => update("website", v)} /></span>
+      </div>
+    </header>
+  );
+
+  const summarySection = (
+    <section className="resume-section summary-section"><h3>个人简介 <small>PROFILE</small></h3><Editable value={data.summary} onChange={(v) => update("summary", v)} className="body-copy" multiline /></section>
+  );
+
+  const experienceSection = (
+    <section className="resume-section experience-section"><h3>工作经历 <small>EXPERIENCE</small></h3>
+      <div className="timeline-entry">
+        <div className="entry-head"><div><Editable value={data.company} onChange={(v) => update("company", v)} className="entry-title" /><Editable value={data.role} onChange={(v) => update("role", v)} className="entry-subtitle" /></div><Editable value={data.workDate} onChange={(v) => update("workDate", v)} className="entry-date" /></div>
+        <ul>{lines(data.workDetail).map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}</ul>
+      </div>
+      <div className="entry-secondary timeline-entry">
+        <div className="entry-head"><div><Editable value={data.company2} onChange={(v) => update("company2", v)} className="entry-title" /><Editable value={data.role2} onChange={(v) => update("role2", v)} className="entry-subtitle" /></div><Editable value={data.workDate2} onChange={(v) => update("workDate2", v)} className="entry-date" /></div>
+        <ul>{lines(data.workDetail2).map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}</ul>
+      </div>
+    </section>
+  );
+
+  const projectSection = (
+    <section className="resume-section project-section"><h3>项目经历 <small>PROJECTS</small></h3>
+      <div className="timeline-entry">
+        <div className="entry-head"><div><Editable value={data.project} onChange={(v) => update("project", v)} className="entry-title" /><Editable value={data.projectRole} onChange={(v) => update("projectRole", v)} className="entry-subtitle" /></div><Editable value={data.projectDate} onChange={(v) => update("projectDate", v)} className="entry-date" /></div>
+        <Editable value={data.projectDetail} onChange={(v) => update("projectDetail", v)} className="body-copy" multiline />
+      </div>
+      <div className="entry-secondary timeline-entry">
+        <div className="entry-head"><div><Editable value={data.project2} onChange={(v) => update("project2", v)} className="entry-title" /><Editable value={data.projectRole2} onChange={(v) => update("projectRole2", v)} className="entry-subtitle" /></div><Editable value={data.projectDate2} onChange={(v) => update("projectDate2", v)} className="entry-date" /></div>
+        <Editable value={data.projectDetail2} onChange={(v) => update("projectDetail2", v)} className="body-copy" multiline />
+      </div>
+    </section>
+  );
+
+  const educationSection = (
+    <section className="resume-section education-section"><h3>教育经历 <small>EDUCATION</small></h3>
+      <div className="entry-head"><div><Editable value={data.school} onChange={(v) => update("school", v)} className="entry-title" /><Editable value={data.degree} onChange={(v) => update("degree", v)} className="entry-subtitle" /></div><Editable value={data.educationDate} onChange={(v) => update("educationDate", v)} className="entry-date" /></div>
+      <Editable value={data.educationDetail} onChange={(v) => update("educationDetail", v)} className="body-copy" multiline />
+    </section>
+  );
+
+  const skillsSection = (
+    <section className="resume-section skills-section"><h3>专业技能 <small>SKILLS</small></h3><div className="skill-list">{data.skills.split(/[、,，]/).filter(Boolean).map((skill) => <span key={skill}>{skill.trim()}</span>)}</div></section>
+  );
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -242,38 +298,19 @@ export default function ResumeStudio() {
           </div>
           <div className="paper-stage">
             <article className={`resume-paper template-${template}`} style={{ "--zoom": zoom / 100 } as React.CSSProperties}>
-              <header className="resume-header">
-                <div className="name-block"><Editable value={data.name} onChange={(v) => update("name", v)} className="resume-name" /><Editable value={data.title} onChange={(v) => update("title", v)} className="resume-title" /></div>
-                <div className="contact-grid">
-                  <span>⌖ <Editable value={data.location} onChange={(v) => update("location", v)} /></span>
-                  <span>◍ <Editable value={data.phone} onChange={(v) => update("phone", v)} /></span>
-                  <span>✉ <Editable value={data.email} onChange={(v) => update("email", v)} /></span>
-                  <span>◎ <Editable value={data.website} onChange={(v) => update("website", v)} /></span>
-                </div>
-              </header>
-              <div className="accent-rule"><i /></div>
-              <section className="resume-section summary-section"><h3>个人简介 <small>PROFILE</small></h3><Editable value={data.summary} onChange={(v) => update("summary", v)} className="body-copy" multiline /></section>
-              <section className="resume-section"><h3>工作经历 <small>EXPERIENCE</small></h3>
-                <div className="entry-head"><div><Editable value={data.company} onChange={(v) => update("company", v)} className="entry-title" /><Editable value={data.role} onChange={(v) => update("role", v)} className="entry-subtitle" /></div><Editable value={data.workDate} onChange={(v) => update("workDate", v)} className="entry-date" /></div>
-                <ul>{lines(data.workDetail).map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}</ul>
-                <div className="entry-secondary">
-                  <div className="entry-head"><div><Editable value={data.company2} onChange={(v) => update("company2", v)} className="entry-title" /><Editable value={data.role2} onChange={(v) => update("role2", v)} className="entry-subtitle" /></div><Editable value={data.workDate2} onChange={(v) => update("workDate2", v)} className="entry-date" /></div>
-                  <ul>{lines(data.workDetail2).map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}</ul>
-                </div>
-              </section>
-              <section className="resume-section"><h3>项目经历 <small>PROJECTS</small></h3>
-                <div className="entry-head"><div><Editable value={data.project} onChange={(v) => update("project", v)} className="entry-title" /><Editable value={data.projectRole} onChange={(v) => update("projectRole", v)} className="entry-subtitle" /></div><Editable value={data.projectDate} onChange={(v) => update("projectDate", v)} className="entry-date" /></div>
-                <Editable value={data.projectDetail} onChange={(v) => update("projectDetail", v)} className="body-copy" multiline />
-                <div className="entry-secondary">
-                  <div className="entry-head"><div><Editable value={data.project2} onChange={(v) => update("project2", v)} className="entry-title" /><Editable value={data.projectRole2} onChange={(v) => update("projectRole2", v)} className="entry-subtitle" /></div><Editable value={data.projectDate2} onChange={(v) => update("projectDate2", v)} className="entry-date" /></div>
-                  <Editable value={data.projectDetail2} onChange={(v) => update("projectDetail2", v)} className="body-copy" multiline />
-                </div>
-              </section>
-              <section className="resume-section"><h3>教育经历 <small>EDUCATION</small></h3>
-                <div className="entry-head"><div><Editable value={data.school} onChange={(v) => update("school", v)} className="entry-title" /><Editable value={data.degree} onChange={(v) => update("degree", v)} className="entry-subtitle" /></div><Editable value={data.educationDate} onChange={(v) => update("educationDate", v)} className="entry-date" /></div>
-                <Editable value={data.educationDetail} onChange={(v) => update("educationDetail", v)} className="body-copy" multiline />
-              </section>
-              <section className="resume-section skills-section"><h3>专业技能 <small>SKILLS</small></h3><div className="skill-list">{data.skills.split(/[、,，]/).filter(Boolean).map((skill) => <span key={skill}>{skill.trim()}</span>)}</div></section>
+              {template === "markdown" ? <>
+                {resumeHeader}<div className="accent-rule"><i /></div>
+                {educationSection}{experienceSection}{projectSection}{skillsSection}{summarySection}
+              </> : template === "sidebar" ? <div className="resume-layout-sidebar">
+                <aside className="resume-sidebar">{resumeHeader}{summarySection}{skillsSection}{educationSection}</aside>
+                <div className="resume-main">{experienceSection}{projectSection}</div>
+              </div> : template === "timeline" ? <>
+                {resumeHeader}<div className="accent-rule"><i /></div>
+                <div className="resume-layout-timeline"><main>{experienceSection}{projectSection}</main><aside>{summarySection}{skillsSection}{educationSection}</aside></div>
+              </> : <>
+                {resumeHeader}<div className="accent-rule"><i /></div>
+                {summarySection}{experienceSection}{projectSection}{educationSection}{skillsSection}
+              </>}
             </article>
           </div>
         </section>

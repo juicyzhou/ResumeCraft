@@ -152,6 +152,69 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, [contentedita
 .template-blueprint .resume-section h3::after { height:2px; background:#c9d8fa; }
 .template-blueprint .skill-list span { color:#fff; border-radius:2px; background:#155eef; }
 
+.template-markdown { --accent:#222; padding:44px 52px; color:#303030; font-family:Arial,"PingFang SC",sans-serif; font-size:12.5px; line-height:1.62; }
+.template-markdown .resume-header { display:block; }
+.template-markdown .name-block { display:block; }
+.template-markdown .resume-name { display:block; font-family:Arial,"PingFang SC",sans-serif; font-size:28px; letter-spacing:0; }
+.template-markdown .resume-title { display:inline-block; margin:3px 0 8px; color:#5c5c5c; font-size:12px; letter-spacing:0; }
+.template-markdown .contact-grid { display:flex; flex-wrap:wrap; gap:4px 17px; color:#4f4f4f; font-size:10.5px; }
+.template-markdown .accent-rule { margin:12px 0 0; background:#dcdcdc; }
+.template-markdown .accent-rule i { display:none; }
+.template-markdown .resume-section { margin-top:18px; }
+.template-markdown .resume-section h3 { margin-bottom:10px; padding-bottom:4px; border-bottom:1px solid #e4e4e4; font-family:Arial,"PingFang SC",sans-serif; font-size:18px; letter-spacing:0; }
+.template-markdown .resume-section h3 small, .template-markdown .resume-section h3::after { display:none; }
+.template-markdown .entry-title { font-size:13px; }
+.template-markdown .entry-subtitle { color:#555; font-size:11px; }
+.template-markdown .entry-date { font-family:Arial,sans-serif; font-size:11px; }
+.template-markdown .entry-secondary { margin-top:10px; padding-top:9px; border-top:0; }
+.template-markdown .skill-list { gap:0; }
+.template-markdown .skill-list span { padding:0; color:#404040; background:transparent; }
+.template-markdown .skill-list span:not(:last-child)::after { content:"  ·  "; white-space:pre; color:#999; }
+.template-markdown .summary-section { padding:11px 14px; border-left:3px solid #cfcfcf; background:#f7f7f7; }
+
+.template-sidebar { --accent:#89c5ae; padding:0; font-size:11px; line-height:1.58; }
+.resume-layout-sidebar { display:grid; grid-template-columns:238px 1fr; min-height:1123px; }
+.resume-sidebar { padding:45px 27px; color:#eaf4f0; background:#173f3b; }
+.resume-sidebar .resume-header { display:block; }
+.resume-sidebar .resume-name { color:#fff; font-family:Arial,"PingFang SC",sans-serif; font-size:31px; letter-spacing:0; }
+.resume-sidebar .resume-title { color:#9fd2bf; font-size:11px; letter-spacing:.5px; }
+.resume-sidebar .contact-grid { display:flex; flex-direction:column; gap:7px; margin-top:24px; color:#d4e8e1; font-size:9.5px; }
+.resume-sidebar .resume-section { margin-top:30px; }
+.resume-sidebar .resume-section h3 { color:#fff; font-family:Arial,"PingFang SC",sans-serif; font-size:13px; }
+.resume-sidebar .resume-section h3 small { color:#89c5ae; }
+.resume-sidebar .resume-section h3::after { background:#ffffff26; }
+.resume-sidebar .body-copy, .resume-sidebar .entry-date { color:#d4e8e1; }
+.resume-sidebar .entry-head, .resume-sidebar .entry-head>div { display:block; }
+.resume-sidebar .entry-title, .resume-sidebar .entry-subtitle, .resume-sidebar .entry-date { display:block; margin-bottom:3px; }
+.resume-sidebar .skill-list { gap:5px; }
+.resume-sidebar .skill-list span { padding:3px 7px; color:#eafff7; border:1px solid #ffffff2b; background:#ffffff12; }
+.resume-main { padding:39px 43px 50px; }
+.resume-main .resume-section:first-child { margin-top:0; }
+.resume-main .resume-section { margin-top:25px; }
+.resume-main .resume-section h3 { color:#173f3b; font-family:Arial,"PingFang SC",sans-serif; font-size:15px; }
+.resume-main .entry-secondary { margin-top:14px; padding-top:12px; }
+
+.template-timeline { --accent:#b45309; padding:43px 50px; font-size:11px; line-height:1.56; }
+.template-timeline .resume-header { align-items:center; }
+.template-timeline .resume-name { font-family:Georgia,"Songti SC",serif; font-size:40px; font-weight:500; letter-spacing:1px; }
+.template-timeline .resume-title { color:#b45309; font-size:11px; letter-spacing:1px; }
+.template-timeline .accent-rule { margin:20px 0 10px; background:#ead8c5; }
+.template-timeline .accent-rule i { width:170px; height:4px; background:#b45309; }
+.resume-layout-timeline { display:grid; grid-template-columns:minmax(0,1fr) 205px; gap:38px; }
+.resume-layout-timeline>aside { padding-left:24px; border-left:1px solid #dfc7ad; }
+.resume-layout-timeline .resume-section { margin-top:24px; }
+.resume-layout-timeline>main .resume-section h3 { color:#3d2b1d; font-family:Georgia,"Songti SC",serif; font-size:17px; }
+.resume-layout-timeline>aside .resume-section h3 { display:block; color:#b45309; font-family:Arial,"PingFang SC",sans-serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; }
+.resume-layout-timeline>aside .resume-section h3::after { display:block; margin-top:6px; background:#dfc7ad; }
+.resume-layout-timeline>aside .resume-section h3 small { display:none; }
+.resume-layout-timeline>aside .entry-head, .resume-layout-timeline>aside .entry-head>div { display:block; }
+.resume-layout-timeline>aside .entry-title, .resume-layout-timeline>aside .entry-subtitle, .resume-layout-timeline>aside .entry-date { display:block; margin-bottom:3px; white-space:normal; }
+.resume-layout-timeline>aside .skill-list { display:block; }
+.resume-layout-timeline>aside .skill-list span { display:block; padding:3px 0; border-bottom:1px solid #eee4d9; background:transparent; }
+.resume-layout-timeline>main .timeline-entry { position:relative; padding-left:20px; border-left:1px solid #d8b896; }
+.resume-layout-timeline>main .timeline-entry::before { content:""; position:absolute; left:-5px; top:4px; width:9px; height:9px; border:2px solid #fff; border-radius:50%; background:#b45309; box-shadow:0 0 0 1px #b45309; }
+.resume-layout-timeline>main .entry-secondary { padding-top:3px; border-top:0; }
+
 .modal-backdrop { position:fixed; inset:0; z-index:20; display:grid; place-items:center; padding:24px; background:#17231dc9; backdrop-filter:blur(5px); }
 .template-modal { width:min(940px, 100%); max-height:92dvh; overflow:auto; padding:32px; border-radius:16px; background:#f8f9f6; box-shadow:0 25px 80px #0d17115c; }
 .modal-head { display:flex; justify-content:space-between; margin-bottom:26px; }
@@ -186,6 +249,17 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, [contentedita
 .mini-blueprint { border-left:9px solid #155eef; }
 .mini-blueprint i { background:#172554; }
 .mini-blueprint b { width:100%; height:3px; background:#155eef; }
+.mini-markdown { padding:21px 22px; }
+.mini-markdown i { width:28%; height:9px; background:#222; }
+.mini-markdown b { width:100%; height:1px; margin:10px 0 14px; background:#bbb; }
+.mini-markdown strong { width:20%; height:6px; margin:15px 0 8px; }
+.mini-sidebar { padding:28px 20px 20px 42%; }
+.mini-sidebar::before { content:""; position:absolute; inset:0 62% 0 0; background:#173f3b; }
+.mini-sidebar i, .mini-sidebar b { position:relative; background:#3e6d65; }
+.mini-timeline { padding-left:50px; }
+.mini-timeline::before { content:""; position:absolute; top:67px; bottom:22px; left:34px; width:1px; background:#d5a979; }
+.mini-timeline i { width:44%; height:13px; background:#4b3422; }
+.mini-timeline b { width:55%; height:3px; background:#b45309; }
 .mobile-switch { display:none; }
 
 @media (max-width:1100px) {
@@ -228,4 +302,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, [contentedita
   .topbar, .section-nav, .editor-panel, .preview-toolbar, .mobile-switch, .modal-backdrop { display:none !important; }
   .app-shell, .workspace, .preview-panel, .paper-stage { display:block; width:auto; height:auto; min-height:0; overflow:visible; background:white; padding:0; }
   .resume-paper { width:210mm; min-height:297mm; margin:0; padding:17mm 18mm; box-shadow:none; transform:none !important; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  .resume-paper.template-sidebar { padding:0; }
+  .resume-layout-sidebar { min-height:297mm; }
 }
