@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type Template = "classic" | "modern" | "calm";
+type Template = "classic" | "modern" | "calm" | "neural" | "compiler" | "blueprint";
 
 type ResumeData = {
   name: string;
@@ -21,39 +21,58 @@ type ResumeData = {
   role: string;
   workDate: string;
   workDetail: string;
+  company2: string;
+  role2: string;
+  workDate2: string;
+  workDetail2: string;
   project: string;
   projectRole: string;
   projectDate: string;
   projectDetail: string;
+  project2: string;
+  projectRole2: string;
+  projectDate2: string;
+  projectDetail2: string;
 };
 
 const initialData: ResumeData = {
-  name: "林知夏",
-  title: "产品设计师",
-  location: "上海",
+  name: "周屿",
+  title: "AI / 大模型应用工程师",
+  location: "杭州",
   phone: "138 0013 8000",
-  email: "zhixia.lin@example.com",
-  website: "linzhixia.design",
-  summary: "5 年数字产品设计经验，擅长把复杂业务转化为清晰、自然的用户体验。关注策略、体验与商业目标之间的平衡，乐于推动跨团队共创并让好想法真正落地。",
-  skills: "产品策略、用户研究、交互设计、Figma、设计系统",
-  school: "江南大学",
-  degree: "工业设计 · 本科",
-  educationDate: "2015.09 — 2019.06",
-  educationDetail: "专业前 10%，主修用户体验设计、服务设计与视觉传达。",
-  company: "远望科技",
-  role: "高级产品设计师",
-  workDate: "2022.03 — 至今",
-  workDetail: "负责企业协作产品从 0 到 1 的体验设计，建立覆盖 Web 与移动端的设计系统。\n重构核心工作流，使新用户任务完成率提升 31%，客户满意度提升至 4.8/5。\n协同产品、研发与市场团队推进 6 次大型版本发布。",
-  project: "Flow 智能工作台",
-  projectRole: "体验负责人",
-  projectDate: "2023.06 — 2024.02",
-  projectDetail: "主导调研、信息架构与关键交互设计，将分散的审批、项目与知识流程整合为统一工作台，上线三个月后周活跃用户增长 42%。",
+  email: "zhouyu.ai@example.com",
+  website: "github.com/zhouyu-ai",
+  summary: "5 年后端与 AI 应用研发经验，专注大模型落地、RAG 检索增强与高并发服务架构。具备从数据治理、模型评测到服务部署的完整工程经验，能够将不确定的算法能力转化为稳定、可观测、可迭代的业务系统。",
+  skills: "Python、PyTorch、LangChain、RAG、Agent、FastAPI、Java、Redis、Kafka、Kubernetes、LLM Evaluation",
+  school: "浙江大学",
+  degree: "计算机科学与技术 · 硕士",
+  educationDate: "2017.09 — 2020.06",
+  educationDetail: "研究方向为自然语言处理与知识图谱；核心课程 GPA 3.8/4.0，获研究生一等奖学金。",
+  company: "星河智能科技",
+  role: "高级 AI 应用工程师",
+  workDate: "2023.04 — 至今",
+  workDetail: "主导企业知识助手从 0 到 1 建设，设计混合检索、重排与引用溯源链路，回答准确率由 68% 提升至 89%。\n搭建覆盖 12 类业务场景的自动化评测集与回归流水线，将模型版本验证周期从 3 天缩短至 4 小时。\n使用 vLLM、Kubernetes 完成推理服务部署与弹性扩缩容，峰值吞吐提升 2.6 倍，单次调用成本降低 37%。",
+  company2: "云栈网络科技",
+  role2: "后端开发工程师",
+  workDate2: "2020.07 — 2023.03",
+  workDetail2: "负责交易中台与开放平台核心服务，基于 Java、Spring Boot、Kafka 支撑日均 3000 万次调用。\n推动慢查询治理、缓存分层与链路压测，核心接口 P99 延迟从 420ms 降至 160ms。",
+  project: "Atlas 企业级 RAG 平台",
+  projectRole: "技术负责人",
+  projectDate: "2023.08 — 2024.05",
+  projectDetail: "构建文档解析、向量化、权限过滤、检索评测一体化平台，支持 PDF、网页与结构化数据接入；服务 18 个业务团队，累计沉淀 600 万知识切片，月活用户超过 1.2 万。",
+  project2: "多智能体代码审查助手",
+  projectRole2: "核心开发者",
+  projectDate2: "2024.06 — 2024.11",
+  projectDetail2: "设计规划、检索、审查与验证四类 Agent 协作流程，结合 AST 与代码仓库上下文生成可溯源建议；试点团队缺陷发现率提升 23%，误报率控制在 8% 以内。",
 };
 
 const templateMeta: { id: Template; name: string; note: string; color: string }[] = [
   { id: "classic", name: "清简", note: "通用稳妥", color: "#1f2a24" },
   { id: "modern", name: "新章", note: "现代醒目", color: "#3d5afe" },
   { id: "calm", name: "松岚", note: "克制独特", color: "#34675c" },
+  { id: "neural", name: "神经元", note: "AI / 算法", color: "#6c4ff8" },
+  { id: "compiler", name: "编译器", note: "后端 / 架构", color: "#087f5b" },
+  { id: "blueprint", name: "工程蓝", note: "全栈 / 研发", color: "#155eef" },
 ];
 
 const sectionFields = [
@@ -106,12 +125,13 @@ export default function ResumeStudio() {
   const [mobileView, setMobileView] = useState<"edit" | "preview">("preview");
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("jianxu-resume");
+    const stored = window.localStorage.getItem("jianxu-resume-v2") || window.localStorage.getItem("jianxu-resume");
     if (stored) {
       try {
         const parsed = JSON.parse(stored) as { data: ResumeData; template: Template };
-        setData(parsed.data);
-        setTemplate(parsed.template);
+        const isOldExample = parsed.data?.title === "产品设计师" && !parsed.data?.company2;
+        setData(isOldExample ? initialData : { ...initialData, ...parsed.data });
+        setTemplate(templateMeta.some((item) => item.id === parsed.template) ? parsed.template : "classic");
       } catch { /* keep the polished default */ }
     }
   }, []);
@@ -119,7 +139,7 @@ export default function ResumeStudio() {
   useEffect(() => {
     setSaved(false);
     const timeout = window.setTimeout(() => {
-      window.localStorage.setItem("jianxu-resume", JSON.stringify({ data, template }));
+      window.localStorage.setItem("jianxu-resume-v2", JSON.stringify({ data, template }));
       setSaved(true);
     }, 500);
     return () => window.clearTimeout(timeout);
@@ -150,16 +170,28 @@ export default function ResumeStudio() {
         {activeSection === "summary" && <div className="form-grid"><Field label="个人简介" value={data.summary} onChange={(v) => update("summary", v)} multiline /></div>}
         {activeSection === "skills" && <div className="form-grid"><Field label="专业技能（用顿号分隔）" value={data.skills} onChange={(v) => update("skills", v)} multiline /></div>}
         {activeSection === "experience" && <div className="form-grid">
+          <p className="form-section-title">最近经历</p>
           <Field label="公司" value={data.company} onChange={(v) => update("company", v)} />
           <Field label="职位" value={data.role} onChange={(v) => update("role", v)} />
           <Field label="时间" value={data.workDate} onChange={(v) => update("workDate", v)} />
           <Field label="工作成果（每行一条）" value={data.workDetail} onChange={(v) => update("workDetail", v)} multiline />
+          <p className="form-section-title">上一段经历</p>
+          <Field label="公司" value={data.company2} onChange={(v) => update("company2", v)} />
+          <Field label="职位" value={data.role2} onChange={(v) => update("role2", v)} />
+          <Field label="时间" value={data.workDate2} onChange={(v) => update("workDate2", v)} />
+          <Field label="工作成果（每行一条）" value={data.workDetail2} onChange={(v) => update("workDetail2", v)} multiline />
         </div>}
         {activeSection === "project" && <div className="form-grid">
+          <p className="form-section-title">代表项目</p>
           <Field label="项目名称" value={data.project} onChange={(v) => update("project", v)} />
           <Field label="担任角色" value={data.projectRole} onChange={(v) => update("projectRole", v)} />
           <Field label="时间" value={data.projectDate} onChange={(v) => update("projectDate", v)} />
           <Field label="项目成果" value={data.projectDetail} onChange={(v) => update("projectDetail", v)} multiline />
+          <p className="form-section-title">补充项目</p>
+          <Field label="项目名称" value={data.project2} onChange={(v) => update("project2", v)} />
+          <Field label="担任角色" value={data.projectRole2} onChange={(v) => update("projectRole2", v)} />
+          <Field label="时间" value={data.projectDate2} onChange={(v) => update("projectDate2", v)} />
+          <Field label="项目成果" value={data.projectDetail2} onChange={(v) => update("projectDetail2", v)} multiline />
         </div>}
         {activeSection === "education" && <div className="form-grid">
           <Field label="学校" value={data.school} onChange={(v) => update("school", v)} />
@@ -224,10 +256,18 @@ export default function ResumeStudio() {
               <section className="resume-section"><h3>工作经历 <small>EXPERIENCE</small></h3>
                 <div className="entry-head"><div><Editable value={data.company} onChange={(v) => update("company", v)} className="entry-title" /><Editable value={data.role} onChange={(v) => update("role", v)} className="entry-subtitle" /></div><Editable value={data.workDate} onChange={(v) => update("workDate", v)} className="entry-date" /></div>
                 <ul>{lines(data.workDetail).map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}</ul>
+                <div className="entry-secondary">
+                  <div className="entry-head"><div><Editable value={data.company2} onChange={(v) => update("company2", v)} className="entry-title" /><Editable value={data.role2} onChange={(v) => update("role2", v)} className="entry-subtitle" /></div><Editable value={data.workDate2} onChange={(v) => update("workDate2", v)} className="entry-date" /></div>
+                  <ul>{lines(data.workDetail2).map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}</ul>
+                </div>
               </section>
               <section className="resume-section"><h3>项目经历 <small>PROJECTS</small></h3>
                 <div className="entry-head"><div><Editable value={data.project} onChange={(v) => update("project", v)} className="entry-title" /><Editable value={data.projectRole} onChange={(v) => update("projectRole", v)} className="entry-subtitle" /></div><Editable value={data.projectDate} onChange={(v) => update("projectDate", v)} className="entry-date" /></div>
                 <Editable value={data.projectDetail} onChange={(v) => update("projectDetail", v)} className="body-copy" multiline />
+                <div className="entry-secondary">
+                  <div className="entry-head"><div><Editable value={data.project2} onChange={(v) => update("project2", v)} className="entry-title" /><Editable value={data.projectRole2} onChange={(v) => update("projectRole2", v)} className="entry-subtitle" /></div><Editable value={data.projectDate2} onChange={(v) => update("projectDate2", v)} className="entry-date" /></div>
+                  <Editable value={data.projectDetail2} onChange={(v) => update("projectDetail2", v)} className="body-copy" multiline />
+                </div>
               </section>
               <section className="resume-section"><h3>教育经历 <small>EDUCATION</small></h3>
                 <div className="entry-head"><div><Editable value={data.school} onChange={(v) => update("school", v)} className="entry-title" /><Editable value={data.degree} onChange={(v) => update("degree", v)} className="entry-subtitle" /></div><Editable value={data.educationDate} onChange={(v) => update("educationDate", v)} className="entry-date" /></div>
