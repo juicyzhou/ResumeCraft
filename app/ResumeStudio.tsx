@@ -8,6 +8,8 @@ type SkillsMode = "keywords" | "detailed";
 type AtsTheme = "standard" | "markdown" | "business" | "academic" | "mono";
 type SectionId = "basic" | "summary" | "experience" | "project" | "education" | "skills";
 type ExportMode = "original" | "ats";
+type WorkExperience = { id: string; company: string; role: string; date: string; detail: string };
+type ProjectExperience = { id: string; name: string; role: string; date: string; detail: string };
 
 type ResumeData = {
   name: string;
@@ -23,26 +25,13 @@ type ResumeData = {
   degree: string;
   educationDate: string;
   educationDetail: string;
-  company: string;
-  role: string;
-  workDate: string;
-  workDetail: string;
-  company2: string;
-  role2: string;
-  workDate2: string;
-  workDetail2: string;
-  project: string;
-  projectRole: string;
-  projectDate: string;
-  projectDetail: string;
-  project2: string;
-  projectRole2: string;
-  projectDate2: string;
-  projectDetail2: string;
+  workExperiences: WorkExperience[];
+  projects: ProjectExperience[];
 };
+type TextFieldKey = { [K in keyof ResumeData]: ResumeData[K] extends string ? K : never }[keyof ResumeData];
 
 const initialData: ResumeData = {
-  name: "周屿",
+  name: "尧舜禹",
   title: "AI / 大模型应用工程师",
   location: "杭州",
   phone: "138 0013 8000",
@@ -55,23 +44,39 @@ const initialData: ResumeData = {
   degree: "计算机科学与技术 · 硕士",
   educationDate: "2017.09 — 2020.06",
   educationDetail: "研究方向为自然语言处理与知识图谱；核心课程 GPA 3.8/4.0，获研究生一等奖学金。",
-  company: "星河智能科技",
-  role: "高级 AI 应用工程师",
-  workDate: "2023.04 — 至今",
-  workDetail: "主导企业知识助手从 0 到 1 建设，设计混合检索、重排与引用溯源链路，回答准确率由 68% 提升至 89%。\n搭建覆盖 12 类业务场景的自动化评测集与回归流水线，将模型版本验证周期从 3 天缩短至 4 小时。\n使用 vLLM、Kubernetes 完成推理服务部署与弹性扩缩容，峰值吞吐提升 2.6 倍，单次调用成本降低 37%。",
-  company2: "云栈网络科技",
-  role2: "后端开发工程师",
-  workDate2: "2020.07 — 2023.03",
-  workDetail2: "负责交易中台与开放平台核心服务，基于 Java、Spring Boot、Kafka 支撑日均 3000 万次调用。\n推动慢查询治理、缓存分层与链路压测，核心接口 P99 延迟从 420ms 降至 160ms。",
-  project: "Atlas 企业级 RAG 平台",
-  projectRole: "技术负责人",
-  projectDate: "2023.08 — 2024.05",
-  projectDetail: "构建文档解析、向量化、权限过滤、检索评测一体化平台，支持 PDF、网页与结构化数据接入；服务 18 个业务团队，累计沉淀 600 万知识切片，月活用户超过 1.2 万。",
-  project2: "多智能体代码审查助手",
-  projectRole2: "核心开发者",
-  projectDate2: "2024.06 — 2024.11",
-  projectDetail2: "设计规划、检索、审查与验证四类 Agent 协作流程，结合 AST 与代码仓库上下文生成可溯源建议；试点团队缺陷发现率提升 23%，误报率控制在 8% 以内。",
+  workExperiences: [
+    { id: "work-1", company: "星河智能科技", role: "高级 AI 应用工程师", date: "2023.04 — 至今", detail: "主导企业知识助手从 0 到 1 建设，设计混合检索、重排与引用溯源链路，回答准确率由 68% 提升至 89%。\n搭建覆盖 12 类业务场景的自动化评测集与回归流水线，将模型版本验证周期从 3 天缩短至 4 小时。\n使用 vLLM、Kubernetes 完成推理服务部署与弹性扩缩容，峰值吞吐提升 2.6 倍，单次调用成本降低 37%。" },
+    { id: "work-2", company: "云栈网络科技", role: "后端开发工程师", date: "2020.07 — 2023.03", detail: "负责交易中台与开放平台核心服务，基于 Java、Spring Boot、Kafka 支撑日均 3000 万次调用。\n推动慢查询治理、缓存分层与链路压测，核心接口 P99 延迟从 420ms 降至 160ms。" },
+  ],
+  projects: [
+    { id: "project-1", name: "Atlas 企业级 RAG 平台", role: "技术负责人", date: "2023.08 — 2024.05", detail: "构建文档解析、向量化、权限过滤、检索评测一体化平台，支持 PDF、网页与结构化数据接入；服务 18 个业务团队，累计沉淀 600 万知识切片，月活用户超过 1.2 万。" },
+    { id: "project-2", name: "多智能体代码审查助手", role: "核心开发者", date: "2024.06 — 2024.11", detail: "设计规划、检索、审查与验证四类 Agent 协作流程，结合 AST 与代码仓库上下文生成可溯源建议；试点团队缺陷发现率提升 23%，误报率控制在 8% 以内。" },
+  ],
 };
+
+type LegacyResumeData = Partial<ResumeData> & {
+  company?: string; role?: string; workDate?: string; workDetail?: string;
+  company2?: string; role2?: string; workDate2?: string; workDetail2?: string;
+  project?: string; projectRole?: string; projectDate?: string; projectDetail?: string;
+  project2?: string; projectRole2?: string; projectDate2?: string; projectDetail2?: string;
+};
+
+function normalizeResumeData(stored: LegacyResumeData): ResumeData {
+  const workExperiences = Array.isArray(stored.workExperiences) ? stored.workExperiences : [
+    { id: "work-migrated-1", company: stored.company || "", role: stored.role || "", date: stored.workDate || "", detail: stored.workDetail || "" },
+    { id: "work-migrated-2", company: stored.company2 || "", role: stored.role2 || "", date: stored.workDate2 || "", detail: stored.workDetail2 || "" },
+  ].filter((item) => item.company || item.role || item.date || item.detail);
+  const projects = Array.isArray(stored.projects) ? stored.projects : [
+    { id: "project-migrated-1", name: stored.project || "", role: stored.projectRole || "", date: stored.projectDate || "", detail: stored.projectDetail || "" },
+    { id: "project-migrated-2", name: stored.project2 || "", role: stored.projectRole2 || "", date: stored.projectDate2 || "", detail: stored.projectDetail2 || "" },
+  ].filter((item) => item.name || item.role || item.date || item.detail);
+  return {
+    ...initialData,
+    ...stored,
+    workExperiences: workExperiences.length ? workExperiences : initialData.workExperiences,
+    projects: projects.length ? projects : initialData.projects,
+  };
+}
 
 const templateMeta: { id: Template; name: string; note: string; color: string; category: Exclude<TemplateCategory, "all">; source: string }[] = [
   { id: "classic", name: "清简", note: "通用稳妥", color: "#1f2a24", category: "general", source: "经典中文简历" },
@@ -167,9 +172,9 @@ export default function ResumeStudio() {
     const stored = window.localStorage.getItem("jianxu-resume-v3") || window.localStorage.getItem("jianxu-resume-v2") || window.localStorage.getItem("jianxu-resume");
     if (stored) {
       try {
-        const parsed = JSON.parse(stored) as { data: ResumeData; template: Template; skillsMode?: SkillsMode; atsMode?: boolean; atsTheme?: AtsTheme; sectionOrder?: SectionId[] };
+        const parsed = JSON.parse(stored) as { data: LegacyResumeData; template: Template; skillsMode?: SkillsMode; atsMode?: boolean; atsTheme?: AtsTheme; sectionOrder?: SectionId[] };
         const isOldExample = parsed.data?.title === "产品设计师" && !parsed.data?.company2;
-        setData(isOldExample ? initialData : { ...initialData, ...parsed.data });
+        setData(isOldExample ? initialData : normalizeResumeData(parsed.data || {}));
         setTemplate(templateMeta.some((item) => item.id === parsed.template) ? parsed.template : "classic");
         setSkillsMode(parsed.skillsMode || "detailed");
         setAtsMode(parsed.atsMode ?? true);
@@ -189,7 +194,31 @@ export default function ResumeStudio() {
     return () => window.clearTimeout(timeout);
   }, [data, template, skillsMode, atsMode, atsTheme, sectionOrder]);
 
-  const update = (key: keyof ResumeData, value: string) => setData((current) => ({ ...current, [key]: value }));
+  const update = (key: TextFieldKey, value: string) => setData((current) => ({ ...current, [key]: value }));
+  const updateWorkExperience = (id: string, key: Exclude<keyof WorkExperience, "id">, value: string) => setData((current) => ({
+    ...current,
+    workExperiences: current.workExperiences.map((item) => item.id === id ? { ...item, [key]: value } : item),
+  }));
+  const updateProject = (id: string, key: Exclude<keyof ProjectExperience, "id">, value: string) => setData((current) => ({
+    ...current,
+    projects: current.projects.map((item) => item.id === id ? { ...item, [key]: value } : item),
+  }));
+  const addWorkExperience = () => setData((current) => ({
+    ...current,
+    workExperiences: [...current.workExperiences, { id: `work-${Date.now()}`, company: "", role: "", date: "", detail: "" }],
+  }));
+  const addProject = () => setData((current) => ({
+    ...current,
+    projects: [...current.projects, { id: `project-${Date.now()}`, name: "", role: "", date: "", detail: "" }],
+  }));
+  const removeWorkExperience = (id: string) => setData((current) => ({
+    ...current,
+    workExperiences: current.workExperiences.filter((item) => item.id !== id),
+  }));
+  const removeProject = (id: string) => setData((current) => ({
+    ...current,
+    projects: current.projects.filter((item) => item.id !== id),
+  }));
   const currentTemplate = useMemo(() => templateMeta.find((item) => item.id === template)!, [template]);
   const visibleTemplates = useMemo(() => templateCategory === "all" ? templateMeta : templateMeta.filter((item) => item.category === templateCategory), [templateCategory]);
   const lines = (value: string) => value.split("\n").filter(Boolean);
@@ -251,29 +280,31 @@ export default function ResumeStudio() {
             ? <Field label="专业技能（每行一个技能分组）" value={data.skillsDetail} onChange={(v) => update("skillsDetail", v)} multiline />
             : <Field label="专业技能（用顿号分隔）" value={data.skills} onChange={(v) => update("skills", v)} multiline />}
         </div>}
-        {activeSection === "experience" && <div className="form-grid">
-          <p className="form-section-title">最近经历</p>
-          <Field label="公司" value={data.company} onChange={(v) => update("company", v)} />
-          <Field label="职位" value={data.role} onChange={(v) => update("role", v)} />
-          <Field label="时间" value={data.workDate} onChange={(v) => update("workDate", v)} />
-          <Field label="工作成果（每行一条）" value={data.workDetail} onChange={(v) => update("workDetail", v)} multiline />
-          <p className="form-section-title">上一段经历</p>
-          <Field label="公司" value={data.company2} onChange={(v) => update("company2", v)} />
-          <Field label="职位" value={data.role2} onChange={(v) => update("role2", v)} />
-          <Field label="时间" value={data.workDate2} onChange={(v) => update("workDate2", v)} />
-          <Field label="工作成果（每行一条）" value={data.workDetail2} onChange={(v) => update("workDetail2", v)} multiline />
+        {activeSection === "experience" && <div className="repeatable-list">
+          {data.workExperiences.map((item, index) => <section className="repeatable-card" key={item.id}>
+            <div className="repeatable-head"><div><span>{String(index + 1).padStart(2, "0")}</span><b>{item.company || `工作经历 ${index + 1}`}</b></div><button onClick={() => removeWorkExperience(item.id)} aria-label={`删除第 ${index + 1} 段工作经历`}>删除</button></div>
+            <div className="form-grid">
+              <Field label="公司" value={item.company} onChange={(v) => updateWorkExperience(item.id, "company", v)} />
+              <Field label="职位" value={item.role} onChange={(v) => updateWorkExperience(item.id, "role", v)} />
+              <Field label="时间" value={item.date} onChange={(v) => updateWorkExperience(item.id, "date", v)} />
+              <Field label="工作成果（每行一条）" value={item.detail} onChange={(v) => updateWorkExperience(item.id, "detail", v)} multiline />
+            </div>
+          </section>)}
+          <button className="add-entry-button" onClick={addWorkExperience}><span>＋</span>新增工作经历</button>
+          {!data.workExperiences.length && <p className="empty-entry-tip">暂无工作经历，点击上方按钮添加。</p>}
         </div>}
-        {activeSection === "project" && <div className="form-grid">
-          <p className="form-section-title">代表项目</p>
-          <Field label="项目名称" value={data.project} onChange={(v) => update("project", v)} />
-          <Field label="担任角色" value={data.projectRole} onChange={(v) => update("projectRole", v)} />
-          <Field label="时间" value={data.projectDate} onChange={(v) => update("projectDate", v)} />
-          <Field label="项目成果" value={data.projectDetail} onChange={(v) => update("projectDetail", v)} multiline />
-          <p className="form-section-title">补充项目</p>
-          <Field label="项目名称" value={data.project2} onChange={(v) => update("project2", v)} />
-          <Field label="担任角色" value={data.projectRole2} onChange={(v) => update("projectRole2", v)} />
-          <Field label="时间" value={data.projectDate2} onChange={(v) => update("projectDate2", v)} />
-          <Field label="项目成果" value={data.projectDetail2} onChange={(v) => update("projectDetail2", v)} multiline />
+        {activeSection === "project" && <div className="repeatable-list">
+          {data.projects.map((item, index) => <section className="repeatable-card" key={item.id}>
+            <div className="repeatable-head"><div><span>{String(index + 1).padStart(2, "0")}</span><b>{item.name || `项目经历 ${index + 1}`}</b></div><button onClick={() => removeProject(item.id)} aria-label={`删除第 ${index + 1} 段项目经历`}>删除</button></div>
+            <div className="form-grid">
+              <Field label="项目名称" value={item.name} onChange={(v) => updateProject(item.id, "name", v)} />
+              <Field label="担任角色" value={item.role} onChange={(v) => updateProject(item.id, "role", v)} />
+              <Field label="时间" value={item.date} onChange={(v) => updateProject(item.id, "date", v)} />
+              <Field label="项目成果" value={item.detail} onChange={(v) => updateProject(item.id, "detail", v)} multiline />
+            </div>
+          </section>)}
+          <button className="add-entry-button" onClick={addProject}><span>＋</span>新增项目经历</button>
+          {!data.projects.length && <p className="empty-entry-tip">暂无项目经历，点击上方按钮添加。</p>}
         </div>}
         {activeSection === "education" && <div className="form-grid">
           <Field label="学校" value={data.school} onChange={(v) => update("school", v)} />
@@ -304,27 +335,19 @@ export default function ResumeStudio() {
 
   const experienceSection = (
     <section className="resume-section experience-section"><h3>工作经历 <small>EXPERIENCE</small></h3>
-      <div className="timeline-entry">
-        <div className="entry-head"><div><Editable value={data.company} onChange={(v) => update("company", v)} className="entry-title" /><Editable value={data.role} onChange={(v) => update("role", v)} className="entry-subtitle" /></div><Editable value={data.workDate} onChange={(v) => update("workDate", v)} className="entry-date" /></div>
-        <ul>{lines(data.workDetail).map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}</ul>
-      </div>
-      <div className="entry-secondary timeline-entry">
-        <div className="entry-head"><div><Editable value={data.company2} onChange={(v) => update("company2", v)} className="entry-title" /><Editable value={data.role2} onChange={(v) => update("role2", v)} className="entry-subtitle" /></div><Editable value={data.workDate2} onChange={(v) => update("workDate2", v)} className="entry-date" /></div>
-        <ul>{lines(data.workDetail2).map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}</ul>
-      </div>
+      {data.workExperiences.map((item, itemIndex) => <div className={`${itemIndex ? "entry-secondary " : ""}timeline-entry`} key={item.id}>
+        <div className="entry-head"><div><Editable value={item.company} onChange={(v) => updateWorkExperience(item.id, "company", v)} className="entry-title" /><Editable value={item.role} onChange={(v) => updateWorkExperience(item.id, "role", v)} className="entry-subtitle" /></div><Editable value={item.date} onChange={(v) => updateWorkExperience(item.id, "date", v)} className="entry-date" /></div>
+        <ul>{lines(item.detail).map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}</ul>
+      </div>)}
     </section>
   );
 
   const projectSection = (
     <section className="resume-section project-section"><h3>项目经历 <small>PROJECTS</small></h3>
-      <div className="timeline-entry">
-        <div className="entry-head"><div><Editable value={data.project} onChange={(v) => update("project", v)} className="entry-title" /><Editable value={data.projectRole} onChange={(v) => update("projectRole", v)} className="entry-subtitle" /></div><Editable value={data.projectDate} onChange={(v) => update("projectDate", v)} className="entry-date" /></div>
-        <Editable value={data.projectDetail} onChange={(v) => update("projectDetail", v)} className="body-copy" multiline />
-      </div>
-      <div className="entry-secondary timeline-entry">
-        <div className="entry-head"><div><Editable value={data.project2} onChange={(v) => update("project2", v)} className="entry-title" /><Editable value={data.projectRole2} onChange={(v) => update("projectRole2", v)} className="entry-subtitle" /></div><Editable value={data.projectDate2} onChange={(v) => update("projectDate2", v)} className="entry-date" /></div>
-        <Editable value={data.projectDetail2} onChange={(v) => update("projectDetail2", v)} className="body-copy" multiline />
-      </div>
+      {data.projects.map((item, itemIndex) => <div className={`${itemIndex ? "entry-secondary " : ""}timeline-entry`} key={item.id}>
+        <div className="entry-head"><div><Editable value={item.name} onChange={(v) => updateProject(item.id, "name", v)} className="entry-title" /><Editable value={item.role} onChange={(v) => updateProject(item.id, "role", v)} className="entry-subtitle" /></div><Editable value={item.date} onChange={(v) => updateProject(item.id, "date", v)} className="entry-date" /></div>
+        <Editable value={item.detail} onChange={(v) => updateProject(item.id, "detail", v)} className="body-copy" multiline />
+      </div>)}
     </section>
   );
 
