@@ -86,7 +86,7 @@ const templateMeta: { id: Template; name: string; note: string; color: string; c
   { id: "compact", name: "技术简报", note: "资深 / 高密度", color: "#0f4c5c", category: "engineering", source: "Investor Brief" },
   { id: "bandBlue", name: "雾蓝横章", note: "柔和 / 清爽", color: "#86a9b9", category: "visual", source: "Pastel Blue Resume" },
   { id: "bandGreen", name: "鼠尾草", note: "自然 / 稳重", color: "#8da99a", category: "visual", source: "Sage Professional" },
-  { id: "bandWine", name: "柔玫瑰", note: "温暖 / 雅致", color: "#bd929a", category: "visual", source: "Pastel Rose Editorial" },
+  { id: "bandWine", name: "雾紫横章", note: "含蓄 / 雅致", color: "#aaa3bd", category: "visual", source: "Misty Lavender Editorial" },
 ];
 
 const atsThemes: { id: AtsTheme; name: string; note: string }[] = [
