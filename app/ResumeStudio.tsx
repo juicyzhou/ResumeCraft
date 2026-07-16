@@ -6,6 +6,8 @@ type Template = "classic" | "modern" | "calm" | "neural" | "compiler" | "bluepri
 type TemplateCategory = "all" | "engineering" | "ai" | "general" | "visual";
 type SkillsMode = "keywords" | "detailed";
 type AtsTheme = "standard" | "markdown" | "business" | "academic" | "mono";
+type SectionId = "basic" | "summary" | "experience" | "project" | "education" | "skills";
+type ExportMode = "original" | "ats";
 
 type ResumeData = {
   name: string;
@@ -105,7 +107,7 @@ const templateCategories: { id: TemplateCategory; label: string }[] = [
   { id: "visual", label: "视觉展示" },
 ];
 
-const sectionFields = [
+const sectionFields: { id: SectionId; label: string; mark: string }[] = [
   { id: "basic", label: "基本信息", mark: "01" },
   { id: "summary", label: "个人简介", mark: "02" },
   { id: "experience", label: "工作经历", mark: "03" },
@@ -157,18 +159,23 @@ export default function ResumeStudio() {
   const [atsMode, setAtsMode] = useState(true);
   const [atsTheme, setAtsTheme] = useState<AtsTheme>("standard");
   const [templateCategory, setTemplateCategory] = useState<TemplateCategory>("all");
+  const [sectionOrder, setSectionOrder] = useState<SectionId[]>(sectionFields.map((section) => section.id));
+  const [draggedSection, setDraggedSection] = useState<SectionId | null>(null);
+  const [showExportOptions, setShowExportOptions] = useState(false);
 
   useEffect(() => {
     const stored = window.localStorage.getItem("jianxu-resume-v3") || window.localStorage.getItem("jianxu-resume-v2") || window.localStorage.getItem("jianxu-resume");
     if (stored) {
       try {
-        const parsed = JSON.parse(stored) as { data: ResumeData; template: Template; skillsMode?: SkillsMode; atsMode?: boolean; atsTheme?: AtsTheme };
+        const parsed = JSON.parse(stored) as { data: ResumeData; template: Template; skillsMode?: SkillsMode; atsMode?: boolean; atsTheme?: AtsTheme; sectionOrder?: SectionId[] };
         const isOldExample = parsed.data?.title === "产品设计师" && !parsed.data?.company2;
         setData(isOldExample ? initialData : { ...initialData, ...parsed.data });
         setTemplate(templateMeta.some((item) => item.id === parsed.template) ? parsed.template : "classic");
         setSkillsMode(parsed.skillsMode || "detailed");
         setAtsMode(parsed.atsMode ?? true);
         setAtsTheme(atsThemes.some((item) => item.id === parsed.atsTheme) ? parsed.atsTheme! : "standard");
+        const validOrder = parsed.sectionOrder?.filter((id, index, values) => sectionFields.some((section) => section.id === id) && values.indexOf(id) === index);
+        if (validOrder?.length === sectionFields.length) setSectionOrder(validOrder);
       } catch { /* keep the polished default */ }
     }
   }, []);
@@ -176,19 +183,44 @@ export default function ResumeStudio() {
   useEffect(() => {
     setSaved(false);
     const timeout = window.setTimeout(() => {
-      window.localStorage.setItem("jianxu-resume-v3", JSON.stringify({ data, template, skillsMode, atsMode, atsTheme }));
+      window.localStorage.setItem("jianxu-resume-v3", JSON.stringify({ data, template, skillsMode, atsMode, atsTheme, sectionOrder }));
       setSaved(true);
     }, 500);
     return () => window.clearTimeout(timeout);
-  }, [data, template, skillsMode, atsMode, atsTheme]);
+  }, [data, template, skillsMode, atsMode, atsTheme, sectionOrder]);
 
   const update = (key: keyof ResumeData, value: string) => setData((current) => ({ ...current, [key]: value }));
   const currentTemplate = useMemo(() => templateMeta.find((item) => item.id === template)!, [template]);
   const visibleTemplates = useMemo(() => templateCategory === "all" ? templateMeta : templateMeta.filter((item) => item.category === templateCategory), [templateCategory]);
   const lines = (value: string) => value.split("\n").filter(Boolean);
-  const exportAtsPdf = () => {
-    setAtsMode(true);
-    window.setTimeout(() => window.print(), 100);
+  const exportPdf = (mode: ExportMode) => {
+    const previousMode = atsMode;
+    setShowExportOptions(false);
+    setAtsMode(mode === "ats");
+    window.setTimeout(() => {
+      window.print();
+      window.setTimeout(() => setAtsMode(previousMode), 100);
+    }, 150);
+  };
+  const reorderSection = (source: SectionId, target: SectionId) => {
+    if (source === target) return;
+    setSectionOrder((current) => {
+      const sourceIndex = current.indexOf(source);
+      const targetIndex = current.indexOf(target);
+      const next = [...current];
+      [next[sourceIndex], next[targetIndex]] = [next[targetIndex], next[sourceIndex]];
+      return next;
+    });
+  };
+  const moveSection = (id: SectionId, direction: -1 | 1) => {
+    setSectionOrder((current) => {
+      const index = current.indexOf(id);
+      const target = index + direction;
+      if (target < 0 || target >= current.length) return current;
+      const next = [...current];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
   };
 
   const editor = (
@@ -311,6 +343,20 @@ export default function ResumeStudio() {
     </section>
   );
 
+  const orderedSection = (id: SectionId, includeHeaderRule = true) => {
+    if (id === "basic") return <div key={id} className="ordered-basic">{resumeHeader}{includeHeaderRule && <div className="accent-rule"><i /></div>}</div>;
+    if (id === "summary") return <div key={id}>{summarySection}</div>;
+    if (id === "experience") return <div key={id}>{experienceSection}</div>;
+    if (id === "project") return <div key={id}>{projectSection}</div>;
+    if (id === "education") return <div key={id}>{educationSection}</div>;
+    return <div key={id}>{skillsSection}</div>;
+  };
+  const renderOrderedSections = (ids = sectionOrder, includeHeaderRule = true) => ids.map((id) => orderedSection(id, includeHeaderRule));
+  const leftColumnOrder = sectionOrder.filter((id) => ["basic", "summary", "skills", "education"].includes(id));
+  const mainColumnOrder = sectionOrder.filter((id) => ["experience", "project"].includes(id));
+  const timelineMainOrder = sectionOrder.filter((id) => ["experience", "project"].includes(id));
+  const timelineSideOrder = sectionOrder.filter((id) => ["summary", "skills", "education"].includes(id));
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -318,8 +364,14 @@ export default function ResumeStudio() {
         <div className="document-name"><span className="document-dot" />{data.name || "未命名"}的简历 <small>{saved ? "已保存" : "保存中…"}</small></div>
         <div className="top-actions">
           <button className="plain-button" onClick={() => setShowTemplates(true)}><span className="button-icon">▦</span>选择模板</button>
-          <button className="plain-button" onClick={exportAtsPdf}><span className="button-icon">↗</span>ATS 预览</button>
-          <button className="primary-button" onClick={exportAtsPdf}><span>↓</span> 导出 ATS PDF</button>
+          <button className="plain-button" onClick={() => setAtsMode((value) => !value)}><span className="button-icon">↗</span>{atsMode ? "查看原版" : "查看 ATS 版"}</button>
+          <div className="export-menu-wrap">
+            <button className="primary-button" onClick={() => setShowExportOptions((value) => !value)} aria-expanded={showExportOptions}><span>↓</span> 导出 PDF <b>⌄</b></button>
+            {showExportOptions && <div className="export-menu" role="menu">
+              <button onClick={() => exportPdf("original")} role="menuitem"><i>原</i><span><b>导出原版 PDF</b><small>保留当前模板、颜色与视觉布局</small></span></button>
+              <button onClick={() => exportPdf("ats")} role="menuitem"><i>ATS</i><span><b>导出 ATS PDF</b><small>单栏结构，适合招聘系统解析</small></span></button>
+            </div>}
+          </div>
         </div>
       </header>
 
@@ -331,12 +383,37 @@ export default function ResumeStudio() {
       <div className="workspace">
         <nav className={`section-nav ${mobileView === "preview" ? "mobile-hidden" : ""}`} aria-label="简历章节">
           <p>简历内容</p>
-          {sectionFields.map((section) => (
-            <button key={section.id} className={activeSection === section.id ? "active" : ""} onClick={() => setActiveSection(section.id)}>
-              <span>{section.mark}</span>{section.label}<i>›</i>
+          {sectionOrder.map((sectionId, index) => {
+            const section = sectionFields.find((item) => item.id === sectionId)!;
+            return (
+            <button
+              key={section.id}
+              data-section-id={section.id}
+              draggable
+              className={`${activeSection === section.id ? "active" : ""} ${draggedSection === section.id ? "is-dragging" : ""}`}
+              onClick={() => setActiveSection(section.id)}
+              onDragStart={(event) => {
+                setDraggedSection(section.id);
+                event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData("text/plain", section.id);
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+                if (draggedSection) reorderSection(draggedSection, section.id);
+              }}
+              onDragEnd={() => setDraggedSection(null)}
+            >
+              <span>{String(index + 1).padStart(2, "0")}</span>{section.label}
+              <span className="section-movers">
+                <span className="drag-grip" aria-hidden="true">⠿</span>
+                <span className="move-buttons">
+                  <span role="button" tabIndex={0} aria-label={`上移${section.label}`} className={index === 0 ? "disabled" : ""} onClick={(event) => { event.stopPropagation(); moveSection(section.id, -1); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); moveSection(section.id, -1); } }}>↑</span>
+                  <span role="button" tabIndex={0} aria-label={`下移${section.label}`} className={index === sectionOrder.length - 1 ? "disabled" : ""} onClick={(event) => { event.stopPropagation(); moveSection(section.id, 1); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); moveSection(section.id, 1); } }}>↓</span>
+                </span>
+              </span>
             </button>
-          ))}
-          <div className="nav-bottom"><button onClick={() => { setData(initialData); setTemplate("classic"); }}>↺ <span>恢复示例</span></button></div>
+          )})}
+          <div className="nav-bottom"><button onClick={() => { setData(initialData); setTemplate("classic"); setSectionOrder(sectionFields.map((section) => section.id)); }}>↺ <span>恢复示例</span></button></div>
         </nav>
 
         {editor}
@@ -355,23 +432,17 @@ export default function ResumeStudio() {
           <div className="paper-stage">
             <article className={`resume-paper template-${template} ${atsMode ? `ats-strict ats-theme-${atsTheme}` : ""}`} style={{ "--zoom": zoom / 100 } as React.CSSProperties}>
               {atsMode ? <>
-                {resumeHeader}<div className="accent-rule"><i /></div>
-                {summarySection}{experienceSection}{projectSection}{educationSection}{skillsSection}
-              </> : template === "markdown" ? <>
-                {resumeHeader}<div className="accent-rule"><i /></div>
-                {educationSection}{experienceSection}{projectSection}{skillsSection}{summarySection}
-              </> : template === "research" ? <>
-                {resumeHeader}<div className="accent-rule"><i /></div>
-                {summarySection}{educationSection}{projectSection}{experienceSection}{skillsSection}
+                {renderOrderedSections()}
+              </> : template === "markdown" || template === "research" ? <>
+                {renderOrderedSections()}
               </> : template === "sidebar" ? <div className="resume-layout-sidebar">
-                <aside className="resume-sidebar">{resumeHeader}{summarySection}{skillsSection}{educationSection}</aside>
-                <div className="resume-main">{experienceSection}{projectSection}</div>
+                <aside className="resume-sidebar">{renderOrderedSections(leftColumnOrder, false)}</aside>
+                <div className="resume-main">{renderOrderedSections(mainColumnOrder, false)}</div>
               </div> : template === "timeline" ? <>
                 {resumeHeader}<div className="accent-rule"><i /></div>
-                <div className="resume-layout-timeline"><main>{experienceSection}{projectSection}</main><aside>{summarySection}{skillsSection}{educationSection}</aside></div>
+                <div className="resume-layout-timeline"><main>{renderOrderedSections(timelineMainOrder, false)}</main><aside>{renderOrderedSections(timelineSideOrder, false)}</aside></div>
               </> : <>
-                {resumeHeader}<div className="accent-rule"><i /></div>
-                {summarySection}{experienceSection}{projectSection}{educationSection}{skillsSection}
+                {renderOrderedSections()}
               </>}
             </article>
           </div>
