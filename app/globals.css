@@ -277,20 +277,24 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, [contentedita
 .template-compact .skill-detail-list { display:grid; grid-template-columns:1fr 1fr; gap:2px 16px; }
 .template-compact .skill-detail-list li { margin:1px 0; }
 
-.template-bandBlue, .template-bandGreen, .template-bandWine { padding:48px 58px; font-family:Arial,"PingFang SC",sans-serif; font-size:11px; line-height:1.56; }
-.template-bandBlue { --accent:#2563a8; }
-.template-bandGreen { --accent:#315f52; }
-.template-bandWine { --accent:#873d4d; }
-.template-bandBlue .resume-header, .template-bandGreen .resume-header, .template-bandWine .resume-header { align-items:center; padding-bottom:18px; border-bottom:2px solid var(--accent); }
-.template-bandBlue .resume-name, .template-bandGreen .resume-name, .template-bandWine .resume-name { font-family:Arial,"PingFang SC",sans-serif; font-size:35px; letter-spacing:0; }
-.template-bandBlue .resume-title, .template-bandGreen .resume-title, .template-bandWine .resume-title { letter-spacing:1px; }
+.template-bandBlue, .template-bandGreen, .template-bandWine { --band-bg:#dceaf1; --band-ink:#294554; --band-mid:#86a9b9; --band-pale:#f1f6f8; padding:48px 58px; color:#30383b; font-family:Arial,"PingFang SC",sans-serif; font-size:11px; line-height:1.58; }
+.template-bandBlue { --accent:#6f94a6; --band-bg:#dceaf1; --band-ink:#294554; --band-mid:#86a9b9; --band-pale:#f1f6f8; }
+.template-bandGreen { --accent:#789789; --band-bg:#dfeae3; --band-ink:#315247; --band-mid:#8da99a; --band-pale:#f2f6f3; }
+.template-bandWine { --accent:#b7858e; --band-bg:#f0e1e3; --band-ink:#704750; --band-mid:#bd929a; --band-pale:#faf3f4; }
+.template-bandBlue .resume-header, .template-bandGreen .resume-header, .template-bandWine .resume-header { align-items:center; padding:14px 17px 15px; border:0; border-left:5px solid var(--band-mid); background:var(--band-pale); }
+.template-bandBlue .resume-name, .template-bandGreen .resume-name, .template-bandWine .resume-name { color:var(--band-ink); font-family:Arial,"PingFang SC",sans-serif; font-size:34px; letter-spacing:0; }
+.template-bandBlue .resume-title, .template-bandGreen .resume-title, .template-bandWine .resume-title { color:var(--accent); letter-spacing:1px; }
+.template-bandBlue .contact-grid, .template-bandGreen .contact-grid, .template-bandWine .contact-grid { color:#667073; }
 .template-bandBlue .accent-rule, .template-bandGreen .accent-rule, .template-bandWine .accent-rule { display:none; }
-.template-bandBlue .resume-section, .template-bandGreen .resume-section, .template-bandWine .resume-section { margin-top:17px; }
-.template-bandBlue .resume-section h3, .template-bandGreen .resume-section h3, .template-bandWine .resume-section h3 { margin:0 -10px 11px; padding:6px 11px; color:#fff; border-radius:2px; background:var(--accent); font-family:Arial,"PingFang SC",sans-serif; font-size:13px; font-weight:700; letter-spacing:.8px; }
-.template-bandBlue .resume-section h3 small, .template-bandGreen .resume-section h3 small, .template-bandWine .resume-section h3 small { margin-left:auto; color:#ffffffbd; }
+.template-bandBlue .resume-section, .template-bandGreen .resume-section, .template-bandWine .resume-section { margin-top:18px; }
+.template-bandBlue .resume-section h3, .template-bandGreen .resume-section h3, .template-bandWine .resume-section h3 { position:relative; margin:0 0 11px; padding:7px 12px 7px 15px; color:var(--band-ink); border-radius:2px; background:var(--band-bg); font-family:Arial,"PingFang SC",sans-serif; font-size:13px; font-weight:700; letter-spacing:.7px; }
+.template-bandBlue .resume-section h3::before, .template-bandGreen .resume-section h3::before, .template-bandWine .resume-section h3::before { content:""; position:absolute; inset:0 auto 0 0; width:4px; background:var(--band-mid); }
+.template-bandBlue .resume-section h3 small, .template-bandGreen .resume-section h3 small, .template-bandWine .resume-section h3 small { margin-left:auto; color:var(--accent); font-weight:600; }
 .template-bandBlue .resume-section h3::after, .template-bandGreen .resume-section h3::after, .template-bandWine .resume-section h3::after { display:none; }
 .template-bandBlue .entry-subtitle, .template-bandGreen .entry-subtitle, .template-bandWine .entry-subtitle { color:var(--accent); }
-.template-bandBlue .skill-list span, .template-bandGreen .skill-list span, .template-bandWine .skill-list span { color:var(--accent); background:color-mix(in srgb, var(--accent) 8%, white); }
+.template-bandBlue .entry-secondary, .template-bandGreen .entry-secondary, .template-bandWine .entry-secondary { border-top-color:var(--band-bg); }
+.template-bandBlue .skill-list span, .template-bandGreen .skill-list span, .template-bandWine .skill-list span { color:var(--band-ink); border:1px solid var(--band-bg); background:var(--band-pale); }
+.template-bandBlue .skill-detail-list li::before, .template-bandGreen .skill-detail-list li::before, .template-bandWine .skill-detail-list li::before { width:4px; height:4px; background:var(--band-mid); }
 
 /* ATS strict mode keeps a canonical single-column reading order for every template. */
 .resume-paper.ats-strict { padding:45px 52px; color:#111; border:0; background:#fff; font-family:Arial,"PingFang SC","Microsoft YaHei",sans-serif; font-size:11px; line-height:1.5; }
@@ -410,14 +414,23 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, [contentedita
 .mini-compact::before { content:""; display:block; height:42px; margin-bottom:12px; border-left:5px solid #0f4c5c; background:#eaf2f3; }
 .mini-compact i { position:absolute; top:29px; left:34px; width:30%; height:9px; background:#153e46; }
 .mini-compact b { width:100%; height:2px; margin-bottom:12px; background:#0f4c5c; }
-.mini-bandBlue strong, .mini-bandGreen strong, .mini-bandWine strong { width:100%; height:13px; margin:18px 0 10px; }
-.mini-bandBlue strong { background:#2563a8; }
-.mini-bandGreen strong { background:#315f52; }
-.mini-bandWine strong { background:#873d4d; }
+.mini-bandBlue, .mini-bandGreen, .mini-bandWine { padding-top:22px; }
+.mini-bandBlue::before, .mini-bandGreen::before, .mini-bandWine::before { content:""; display:block; height:34px; margin-bottom:14px; border-left:4px solid; }
+.mini-bandBlue::before { border-color:#86a9b9; background:#f1f6f8; }
+.mini-bandGreen::before { border-color:#8da99a; background:#f2f6f3; }
+.mini-bandWine::before { border-color:#bd929a; background:#faf3f4; }
+.mini-bandBlue i, .mini-bandGreen i, .mini-bandWine i { position:absolute; top:34px; left:37px; width:28%; height:8px; }
+.mini-bandBlue i { background:#294554; }
+.mini-bandGreen i { background:#315247; }
+.mini-bandWine i { background:#704750; }
+.mini-bandBlue strong, .mini-bandGreen strong, .mini-bandWine strong { width:100%; height:13px; margin:17px 0 10px; border-left:4px solid; }
+.mini-bandBlue strong { border-color:#86a9b9; background:#dceaf1; }
+.mini-bandGreen strong { border-color:#8da99a; background:#dfeae3; }
+.mini-bandWine strong { border-color:#bd929a; background:#f0e1e3; }
 .mini-bandBlue b, .mini-bandGreen b, .mini-bandWine b { width:100%; height:2px; }
-.mini-bandBlue b { background:#2563a8; }
-.mini-bandGreen b { background:#315f52; }
-.mini-bandWine b { background:#873d4d; }
+.mini-bandBlue b { background:#86a9b9; }
+.mini-bandGreen b { background:#8da99a; }
+.mini-bandWine b { background:#bd929a; }
 .mobile-switch { display:none; }
 
 @media (max-width:1100px) {

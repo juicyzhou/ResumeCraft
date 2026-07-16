@@ -84,9 +84,9 @@ const templateMeta: { id: Template; name: string; note: string; color: string; c
   { id: "jake", name: "极客标准", note: "工程 / ATS", color: "#111827", category: "engineering", source: "Jake's Resume" },
   { id: "research", name: "研究序列", note: "算法 / 学术", color: "#5b21b6", category: "ai", source: "Academic CV Lite" },
   { id: "compact", name: "技术简报", note: "资深 / 高密度", color: "#0f4c5c", category: "engineering", source: "Investor Brief" },
-  { id: "bandBlue", name: "蔚蓝横章", note: "彩条 / 清爽", color: "#2563a8", category: "visual", source: "Section Banner" },
-  { id: "bandGreen", name: "墨绿横章", note: "彩条 / 稳重", color: "#315f52", category: "visual", source: "Professional Banner" },
-  { id: "bandWine", name: "勃艮第", note: "彩条 / 雅致", color: "#873d4d", category: "visual", source: "Editorial Banner" },
+  { id: "bandBlue", name: "雾蓝横章", note: "柔和 / 清爽", color: "#86a9b9", category: "visual", source: "Pastel Blue Resume" },
+  { id: "bandGreen", name: "鼠尾草", note: "自然 / 稳重", color: "#8da99a", category: "visual", source: "Sage Professional" },
+  { id: "bandWine", name: "柔玫瑰", note: "温暖 / 雅致", color: "#bd929a", category: "visual", source: "Pastel Rose Editorial" },
 ];
 
 const atsThemes: { id: AtsTheme; name: string; note: string }[] = [
