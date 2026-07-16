@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type Template = "classic" | "modern" | "calm" | "neural" | "compiler" | "blueprint" | "markdown" | "sidebar" | "timeline" | "jake" | "research" | "compact";
+type Template = "classic" | "modern" | "calm" | "neural" | "compiler" | "blueprint" | "markdown" | "sidebar" | "timeline" | "jake" | "research" | "compact" | "bandBlue" | "bandGreen" | "bandWine";
 type TemplateCategory = "all" | "engineering" | "ai" | "general" | "visual";
 type SkillsMode = "keywords" | "detailed";
+type AtsTheme = "standard" | "markdown" | "business" | "academic" | "mono";
 
 type ResumeData = {
   name: string;
@@ -83,6 +84,17 @@ const templateMeta: { id: Template; name: string; note: string; color: string; c
   { id: "jake", name: "极客标准", note: "工程 / ATS", color: "#111827", category: "engineering", source: "Jake's Resume" },
   { id: "research", name: "研究序列", note: "算法 / 学术", color: "#5b21b6", category: "ai", source: "Academic CV Lite" },
   { id: "compact", name: "技术简报", note: "资深 / 高密度", color: "#0f4c5c", category: "engineering", source: "Investor Brief" },
+  { id: "bandBlue", name: "蔚蓝横章", note: "彩条 / 清爽", color: "#2563a8", category: "visual", source: "Section Banner" },
+  { id: "bandGreen", name: "墨绿横章", note: "彩条 / 稳重", color: "#315f52", category: "visual", source: "Professional Banner" },
+  { id: "bandWine", name: "勃艮第", note: "彩条 / 雅致", color: "#873d4d", category: "visual", source: "Editorial Banner" },
+];
+
+const atsThemes: { id: AtsTheme; name: string; note: string }[] = [
+  { id: "standard", name: "标准工程", note: "均衡紧凑" },
+  { id: "markdown", name: "Markdown", note: "章节醒目" },
+  { id: "business", name: "商务留白", note: "舒展易读" },
+  { id: "academic", name: "学术研究", note: "稳重衬线" },
+  { id: "mono", name: "极简黑白", note: "最保守" },
 ];
 
 const templateCategories: { id: TemplateCategory; label: string }[] = [
@@ -143,18 +155,20 @@ export default function ResumeStudio() {
   const [mobileView, setMobileView] = useState<"edit" | "preview">("preview");
   const [skillsMode, setSkillsMode] = useState<SkillsMode>("detailed");
   const [atsMode, setAtsMode] = useState(true);
+  const [atsTheme, setAtsTheme] = useState<AtsTheme>("standard");
   const [templateCategory, setTemplateCategory] = useState<TemplateCategory>("all");
 
   useEffect(() => {
     const stored = window.localStorage.getItem("jianxu-resume-v3") || window.localStorage.getItem("jianxu-resume-v2") || window.localStorage.getItem("jianxu-resume");
     if (stored) {
       try {
-        const parsed = JSON.parse(stored) as { data: ResumeData; template: Template; skillsMode?: SkillsMode; atsMode?: boolean };
+        const parsed = JSON.parse(stored) as { data: ResumeData; template: Template; skillsMode?: SkillsMode; atsMode?: boolean; atsTheme?: AtsTheme };
         const isOldExample = parsed.data?.title === "产品设计师" && !parsed.data?.company2;
         setData(isOldExample ? initialData : { ...initialData, ...parsed.data });
         setTemplate(templateMeta.some((item) => item.id === parsed.template) ? parsed.template : "classic");
         setSkillsMode(parsed.skillsMode || "detailed");
         setAtsMode(parsed.atsMode ?? true);
+        setAtsTheme(atsThemes.some((item) => item.id === parsed.atsTheme) ? parsed.atsTheme! : "standard");
       } catch { /* keep the polished default */ }
     }
   }, []);
@@ -162,11 +176,11 @@ export default function ResumeStudio() {
   useEffect(() => {
     setSaved(false);
     const timeout = window.setTimeout(() => {
-      window.localStorage.setItem("jianxu-resume-v3", JSON.stringify({ data, template, skillsMode, atsMode }));
+      window.localStorage.setItem("jianxu-resume-v3", JSON.stringify({ data, template, skillsMode, atsMode, atsTheme }));
       setSaved(true);
     }, 500);
     return () => window.clearTimeout(timeout);
-  }, [data, template, skillsMode, atsMode]);
+  }, [data, template, skillsMode, atsMode, atsTheme]);
 
   const update = (key: keyof ResumeData, value: string) => setData((current) => ({ ...current, [key]: value }));
   const currentTemplate = useMemo(() => templateMeta.find((item) => item.id === template)!, [template]);
@@ -330,13 +344,16 @@ export default function ResumeStudio() {
         <section className={`preview-panel ${mobileView === "edit" ? "mobile-hidden" : ""}`}>
           <div className="preview-toolbar">
             <div className="template-chip"><i style={{ background: currentTemplate.color }} />{currentTemplate.name}<span>{currentTemplate.note}</span></div>
-            <button className={`ats-toggle ${atsMode ? "active" : ""}`} onClick={() => setAtsMode((value) => !value)} aria-pressed={atsMode}>
-              <span className="ats-toggle-track"><i /></span><b>ATS 严格模式</b><em>{atsMode ? "单栏语义投递版" : "模板视觉预览"}</em>
-            </button>
+            <div className="ats-toolbar">
+              <button className={`ats-toggle ${atsMode ? "active" : ""}`} onClick={() => setAtsMode((value) => !value)} aria-pressed={atsMode}>
+                <span className="ats-toggle-track"><i /></span><b>ATS 严格模式</b>
+              </button>
+              {atsMode && <label className="ats-theme-picker"><span>主题</span><select value={atsTheme} onChange={(event) => setAtsTheme(event.target.value as AtsTheme)}>{atsThemes.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.note}</option>)}</select></label>}
+            </div>
             <div className="zoom-control"><button onClick={() => setZoom((v) => Math.max(65, v - 5))}>−</button><span>{zoom}%</span><button onClick={() => setZoom((v) => Math.min(105, v + 5))}>＋</button></div>
           </div>
           <div className="paper-stage">
-            <article className={`resume-paper template-${template} ${atsMode ? "ats-strict" : ""}`} style={{ "--zoom": zoom / 100 } as React.CSSProperties}>
+            <article className={`resume-paper template-${template} ${atsMode ? `ats-strict ats-theme-${atsTheme}` : ""}`} style={{ "--zoom": zoom / 100 } as React.CSSProperties}>
               {atsMode ? <>
                 {resumeHeader}<div className="accent-rule"><i /></div>
                 {summarySection}{experienceSection}{projectSection}{educationSection}{skillsSection}
@@ -363,7 +380,7 @@ export default function ResumeStudio() {
 
       {showTemplates && <div className="modal-backdrop" onMouseDown={() => setShowTemplates(false)}>
         <section className="template-modal" role="dialog" aria-modal="true" aria-label="选择简历模板" onMouseDown={(event) => event.stopPropagation()}>
-          <div className="modal-head"><div><p className="eyebrow">模板中心 · 12 套</p><h2>按岗位选择优质模板</h2><span>视觉预览各有布局；导出时默认转换为 ATS 严格单栏版。</span></div><button onClick={() => setShowTemplates(false)} aria-label="关闭">×</button></div>
+          <div className="modal-head"><div><p className="eyebrow">模板中心 · 15 套 + 5 套 ATS 主题</p><h2>按岗位选择优质模板</h2><span>视觉模板各有布局；ATS 主题保持相同单栏结构，只改变低风险样式。</span></div><button onClick={() => setShowTemplates(false)} aria-label="关闭">×</button></div>
           <div className="template-categories">{templateCategories.map((category) => <button key={category.id} className={templateCategory === category.id ? "active" : ""} onClick={() => setTemplateCategory(category.id)}>{category.label}</button>)}</div>
           <div className="template-grid">{visibleTemplates.map((item) => <button key={item.id} className={`template-card ${template === item.id ? "active" : ""}`} onClick={() => { setTemplate(item.id); setShowTemplates(false); }}>
             <div className={`mini-paper mini-${item.id}`}><i /><b /><span /><span /><strong /><span /><span /></div>
