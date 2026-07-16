@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type Template = "classic" | "modern" | "calm" | "neural" | "compiler" | "blueprint" | "markdown" | "sidebar" | "timeline";
+type Template = "classic" | "modern" | "calm" | "neural" | "compiler" | "blueprint" | "markdown" | "sidebar" | "timeline" | "jake" | "research" | "compact";
+type TemplateCategory = "all" | "engineering" | "ai" | "general" | "visual";
+type SkillsMode = "keywords" | "detailed";
 
 type ResumeData = {
   name: string;
@@ -13,6 +15,7 @@ type ResumeData = {
   website: string;
   summary: string;
   skills: string;
+  skillsDetail: string;
   school: string;
   degree: string;
   educationDate: string;
@@ -44,6 +47,7 @@ const initialData: ResumeData = {
   website: "github.com/zhouyu-ai",
   summary: "5 年后端与 AI 应用研发经验，专注大模型落地、RAG 检索增强与高并发服务架构。具备从数据治理、模型评测到服务部署的完整工程经验，能够将不确定的算法能力转化为稳定、可观测、可迭代的业务系统。",
   skills: "Python、PyTorch、LangChain、RAG、Agent、FastAPI、Java、Redis、Kafka、Kubernetes、LLM Evaluation",
+  skillsDetail: "编程语言：熟练使用 Python、Java，掌握 TypeScript 与 SQL，具备良好的数据结构、并发编程和代码工程化基础。\nAI 与模型工程：熟悉 PyTorch、Transformers、LangChain、RAG、Agent、Embedding 与模型评测，具有大模型微调和推理优化经验。\n后端与数据：熟悉 FastAPI、Spring Boot、MySQL、Redis、Kafka、Elasticsearch，能够设计高并发、可观测的分布式服务。\n云原生与工程实践：熟悉 Docker、Kubernetes、GitHub Actions、Prometheus，重视自动化测试、性能压测与持续交付。",
   school: "浙江大学",
   degree: "计算机科学与技术 · 硕士",
   educationDate: "2017.09 — 2020.06",
@@ -66,16 +70,27 @@ const initialData: ResumeData = {
   projectDetail2: "设计规划、检索、审查与验证四类 Agent 协作流程，结合 AST 与代码仓库上下文生成可溯源建议；试点团队缺陷发现率提升 23%，误报率控制在 8% 以内。",
 };
 
-const templateMeta: { id: Template; name: string; note: string; color: string }[] = [
-  { id: "classic", name: "清简", note: "通用稳妥", color: "#1f2a24" },
-  { id: "modern", name: "新章", note: "现代醒目", color: "#3d5afe" },
-  { id: "calm", name: "松岚", note: "克制独特", color: "#34675c" },
-  { id: "neural", name: "神经元", note: "AI / 算法", color: "#6c4ff8" },
-  { id: "compiler", name: "编译器", note: "后端 / 架构", color: "#087f5b" },
-  { id: "blueprint", name: "工程蓝", note: "全栈 / 研发", color: "#155eef" },
-  { id: "markdown", name: "文档流", note: "Markdown / ATS", color: "#222222" },
-  { id: "sidebar", name: "深栈", note: "双栏 / 技术栈", color: "#173f3b" },
-  { id: "timeline", name: "时序", note: "时间轴 / 资深", color: "#b45309" },
+const templateMeta: { id: Template; name: string; note: string; color: string; category: Exclude<TemplateCategory, "all">; source: string }[] = [
+  { id: "classic", name: "清简", note: "通用稳妥", color: "#1f2a24", category: "general", source: "经典中文简历" },
+  { id: "modern", name: "新章", note: "现代醒目", color: "#3d5afe", category: "general", source: "Modern Classic" },
+  { id: "calm", name: "松岚", note: "克制独特", color: "#34675c", category: "general", source: "Nordic Minimal" },
+  { id: "neural", name: "神经元", note: "AI / 算法", color: "#6c4ff8", category: "ai", source: "Data-Driven" },
+  { id: "compiler", name: "编译器", note: "后端 / 架构", color: "#087f5b", category: "engineering", source: "Developer Mono" },
+  { id: "blueprint", name: "工程蓝", note: "全栈 / 研发", color: "#155eef", category: "engineering", source: "Graph Paper Grid" },
+  { id: "markdown", name: "文档流", note: "Markdown / ATS", color: "#222222", category: "engineering", source: "Pandoc Markdown" },
+  { id: "sidebar", name: "深栈", note: "双栏 / 技术栈", color: "#173f3b", category: "visual", source: "Deedy / Sidebar" },
+  { id: "timeline", name: "时序", note: "时间轴 / 资深", color: "#b45309", category: "visual", source: "Asymmetric Timeline" },
+  { id: "jake", name: "极客标准", note: "工程 / ATS", color: "#111827", category: "engineering", source: "Jake's Resume" },
+  { id: "research", name: "研究序列", note: "算法 / 学术", color: "#5b21b6", category: "ai", source: "Academic CV Lite" },
+  { id: "compact", name: "技术简报", note: "资深 / 高密度", color: "#0f4c5c", category: "engineering", source: "Investor Brief" },
+];
+
+const templateCategories: { id: TemplateCategory; label: string }[] = [
+  { id: "all", label: "全部" },
+  { id: "engineering", label: "工程开发" },
+  { id: "ai", label: "AI / 研究" },
+  { id: "general", label: "通用商务" },
+  { id: "visual", label: "视觉展示" },
 ];
 
 const sectionFields = [
@@ -126,15 +141,20 @@ export default function ResumeStudio() {
   const [saved, setSaved] = useState(true);
   const [zoom, setZoom] = useState(88);
   const [mobileView, setMobileView] = useState<"edit" | "preview">("preview");
+  const [skillsMode, setSkillsMode] = useState<SkillsMode>("detailed");
+  const [atsMode, setAtsMode] = useState(true);
+  const [templateCategory, setTemplateCategory] = useState<TemplateCategory>("all");
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("jianxu-resume-v2") || window.localStorage.getItem("jianxu-resume");
+    const stored = window.localStorage.getItem("jianxu-resume-v3") || window.localStorage.getItem("jianxu-resume-v2") || window.localStorage.getItem("jianxu-resume");
     if (stored) {
       try {
-        const parsed = JSON.parse(stored) as { data: ResumeData; template: Template };
+        const parsed = JSON.parse(stored) as { data: ResumeData; template: Template; skillsMode?: SkillsMode; atsMode?: boolean };
         const isOldExample = parsed.data?.title === "产品设计师" && !parsed.data?.company2;
         setData(isOldExample ? initialData : { ...initialData, ...parsed.data });
         setTemplate(templateMeta.some((item) => item.id === parsed.template) ? parsed.template : "classic");
+        setSkillsMode(parsed.skillsMode || "detailed");
+        setAtsMode(parsed.atsMode ?? true);
       } catch { /* keep the polished default */ }
     }
   }, []);
@@ -142,15 +162,20 @@ export default function ResumeStudio() {
   useEffect(() => {
     setSaved(false);
     const timeout = window.setTimeout(() => {
-      window.localStorage.setItem("jianxu-resume-v2", JSON.stringify({ data, template }));
+      window.localStorage.setItem("jianxu-resume-v3", JSON.stringify({ data, template, skillsMode, atsMode }));
       setSaved(true);
     }, 500);
     return () => window.clearTimeout(timeout);
-  }, [data, template]);
+  }, [data, template, skillsMode, atsMode]);
 
   const update = (key: keyof ResumeData, value: string) => setData((current) => ({ ...current, [key]: value }));
   const currentTemplate = useMemo(() => templateMeta.find((item) => item.id === template)!, [template]);
+  const visibleTemplates = useMemo(() => templateCategory === "all" ? templateMeta : templateMeta.filter((item) => item.category === templateCategory), [templateCategory]);
   const lines = (value: string) => value.split("\n").filter(Boolean);
+  const exportAtsPdf = () => {
+    setAtsMode(true);
+    window.setTimeout(() => window.print(), 100);
+  };
 
   const editor = (
     <aside className={`editor-panel ${mobileView === "preview" ? "mobile-hidden" : ""}`}>
@@ -171,7 +196,15 @@ export default function ResumeStudio() {
           <Field label="个人网站" value={data.website} onChange={(v) => update("website", v)} />
         </div>}
         {activeSection === "summary" && <div className="form-grid"><Field label="个人简介" value={data.summary} onChange={(v) => update("summary", v)} multiline /></div>}
-        {activeSection === "skills" && <div className="form-grid"><Field label="专业技能（用顿号分隔）" value={data.skills} onChange={(v) => update("skills", v)} multiline /></div>}
+        {activeSection === "skills" && <div className="form-grid">
+          <div className="mode-switch field-wide" role="group" aria-label="专业技能展示模式">
+            <button className={skillsMode === "detailed" ? "active" : ""} onClick={() => setSkillsMode("detailed")}><b>分组详述</b><span>适合技术与专业岗位</span></button>
+            <button className={skillsMode === "keywords" ? "active" : ""} onClick={() => setSkillsMode("keywords")}><b>关键词标签</b><span>适合通用与非技术岗位</span></button>
+          </div>
+          {skillsMode === "detailed"
+            ? <Field label="专业技能（每行一个技能分组）" value={data.skillsDetail} onChange={(v) => update("skillsDetail", v)} multiline />
+            : <Field label="专业技能（用顿号分隔）" value={data.skills} onChange={(v) => update("skills", v)} multiline />}
+        </div>}
         {activeSection === "experience" && <div className="form-grid">
           <p className="form-section-title">最近经历</p>
           <Field label="公司" value={data.company} onChange={(v) => update("company", v)} />
@@ -211,10 +244,10 @@ export default function ResumeStudio() {
     <header className="resume-header">
       <div className="name-block"><Editable value={data.name} onChange={(v) => update("name", v)} className="resume-name" /><Editable value={data.title} onChange={(v) => update("title", v)} className="resume-title" /></div>
       <div className="contact-grid">
-        <span>⌖ <Editable value={data.location} onChange={(v) => update("location", v)} /></span>
-        <span>◍ <Editable value={data.phone} onChange={(v) => update("phone", v)} /></span>
-        <span>✉ <Editable value={data.email} onChange={(v) => update("email", v)} /></span>
-        <span>◎ <Editable value={data.website} onChange={(v) => update("website", v)} /></span>
+        <span><i className="contact-icon">⌖</i><Editable value={data.location} onChange={(v) => update("location", v)} /></span>
+        <span><i className="contact-icon">◍</i><Editable value={data.phone} onChange={(v) => update("phone", v)} /></span>
+        <span><i className="contact-icon">✉</i><Editable value={data.email} onChange={(v) => update("email", v)} /></span>
+        <span><i className="contact-icon">◎</i><Editable value={data.website} onChange={(v) => update("website", v)} /></span>
       </div>
     </header>
   );
@@ -257,7 +290,11 @@ export default function ResumeStudio() {
   );
 
   const skillsSection = (
-    <section className="resume-section skills-section"><h3>专业技能 <small>SKILLS</small></h3><div className="skill-list">{data.skills.split(/[、,，]/).filter(Boolean).map((skill) => <span key={skill}>{skill.trim()}</span>)}</div></section>
+    <section className={`resume-section skills-section skills-${skillsMode}`}><h3>专业技能 <small>SKILLS</small></h3>
+      {skillsMode === "detailed"
+        ? <ul className="skill-detail-list">{lines(data.skillsDetail).map((skill, index) => <li key={`${skill}-${index}`}>{skill}</li>)}</ul>
+        : <div className="skill-list">{data.skills.split(/[、,，]/).filter(Boolean).map((skill) => <span key={skill}>{skill.trim()}</span>)}</div>}
+    </section>
   );
 
   return (
@@ -267,8 +304,8 @@ export default function ResumeStudio() {
         <div className="document-name"><span className="document-dot" />{data.name || "未命名"}的简历 <small>{saved ? "已保存" : "保存中…"}</small></div>
         <div className="top-actions">
           <button className="plain-button" onClick={() => setShowTemplates(true)}><span className="button-icon">▦</span>选择模板</button>
-          <button className="plain-button" onClick={() => window.print()}><span className="button-icon">↗</span>打印预览</button>
-          <button className="primary-button" onClick={() => window.print()}><span>↓</span> 导出 PDF</button>
+          <button className="plain-button" onClick={exportAtsPdf}><span className="button-icon">↗</span>ATS 预览</button>
+          <button className="primary-button" onClick={exportAtsPdf}><span>↓</span> 导出 ATS PDF</button>
         </div>
       </header>
 
@@ -293,14 +330,22 @@ export default function ResumeStudio() {
         <section className={`preview-panel ${mobileView === "edit" ? "mobile-hidden" : ""}`}>
           <div className="preview-toolbar">
             <div className="template-chip"><i style={{ background: currentTemplate.color }} />{currentTemplate.name}<span>{currentTemplate.note}</span></div>
-            <p>点击简历文字即可编辑</p>
+            <button className={`ats-toggle ${atsMode ? "active" : ""}`} onClick={() => setAtsMode((value) => !value)} aria-pressed={atsMode}>
+              <span className="ats-toggle-track"><i /></span><b>ATS 严格模式</b><em>{atsMode ? "单栏语义投递版" : "模板视觉预览"}</em>
+            </button>
             <div className="zoom-control"><button onClick={() => setZoom((v) => Math.max(65, v - 5))}>−</button><span>{zoom}%</span><button onClick={() => setZoom((v) => Math.min(105, v + 5))}>＋</button></div>
           </div>
           <div className="paper-stage">
-            <article className={`resume-paper template-${template}`} style={{ "--zoom": zoom / 100 } as React.CSSProperties}>
-              {template === "markdown" ? <>
+            <article className={`resume-paper template-${template} ${atsMode ? "ats-strict" : ""}`} style={{ "--zoom": zoom / 100 } as React.CSSProperties}>
+              {atsMode ? <>
+                {resumeHeader}<div className="accent-rule"><i /></div>
+                {summarySection}{experienceSection}{projectSection}{educationSection}{skillsSection}
+              </> : template === "markdown" ? <>
                 {resumeHeader}<div className="accent-rule"><i /></div>
                 {educationSection}{experienceSection}{projectSection}{skillsSection}{summarySection}
+              </> : template === "research" ? <>
+                {resumeHeader}<div className="accent-rule"><i /></div>
+                {summarySection}{educationSection}{projectSection}{experienceSection}{skillsSection}
               </> : template === "sidebar" ? <div className="resume-layout-sidebar">
                 <aside className="resume-sidebar">{resumeHeader}{summarySection}{skillsSection}{educationSection}</aside>
                 <div className="resume-main">{experienceSection}{projectSection}</div>
@@ -318,10 +363,12 @@ export default function ResumeStudio() {
 
       {showTemplates && <div className="modal-backdrop" onMouseDown={() => setShowTemplates(false)}>
         <section className="template-modal" role="dialog" aria-modal="true" aria-label="选择简历模板" onMouseDown={(event) => event.stopPropagation()}>
-          <div className="modal-head"><div><p className="eyebrow">模板中心</p><h2>选择最适合你的表达</h2><span>内容不会改变，随时都能切换。</span></div><button onClick={() => setShowTemplates(false)} aria-label="关闭">×</button></div>
-          <div className="template-grid">{templateMeta.map((item) => <button key={item.id} className={`template-card ${template === item.id ? "active" : ""}`} onClick={() => { setTemplate(item.id); setShowTemplates(false); }}>
+          <div className="modal-head"><div><p className="eyebrow">模板中心 · 12 套</p><h2>按岗位选择优质模板</h2><span>视觉预览各有布局；导出时默认转换为 ATS 严格单栏版。</span></div><button onClick={() => setShowTemplates(false)} aria-label="关闭">×</button></div>
+          <div className="template-categories">{templateCategories.map((category) => <button key={category.id} className={templateCategory === category.id ? "active" : ""} onClick={() => setTemplateCategory(category.id)}>{category.label}</button>)}</div>
+          <div className="template-grid">{visibleTemplates.map((item) => <button key={item.id} className={`template-card ${template === item.id ? "active" : ""}`} onClick={() => { setTemplate(item.id); setShowTemplates(false); }}>
             <div className={`mini-paper mini-${item.id}`}><i /><b /><span /><span /><strong /><span /><span /></div>
             <div><strong>{item.name}</strong><span>{item.note}</span>{template === item.id && <em>✓ 当前使用</em>}</div>
+            <small className="template-source">参考：{item.source} · ATS 严格导出</small>
           </button>)}</div>
         </section>
       </div>}
