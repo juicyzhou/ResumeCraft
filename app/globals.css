@@ -304,8 +304,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, [contentedita
 .template-jake .contact-grid { display:flex; justify-content:center; flex-wrap:wrap; gap:3px 14px; margin-top:6px; font-size:9px; }
 .template-jake .accent-rule { display:none; }
 .template-jake .resume-section { margin-top:14px; }
-.template-jake .resume-section h3 { margin-bottom:7px; padding-bottom:2px; border-bottom:1px solid #111827; font-family:Arial,"PingFang SC",sans-serif; font-size:12px; font-weight:800; letter-spacing:.8px; text-transform:uppercase; }
+.template-jake .resume-section h3 { margin-bottom:8px; padding-bottom:3px; border-bottom:1px solid #111827; font-family:Arial,"PingFang SC",sans-serif; font-size:14px; font-weight:800; line-height:1.25; letter-spacing:.5px; text-transform:uppercase; }
 .template-jake .resume-section h3 small, .template-jake .resume-section h3::after { display:none; }
+.template-jake .entry-title { font-size:12.5px; }
 .template-jake .entry-head { margin-bottom:3px; }
 .template-jake .entry-secondary { margin-top:7px; padding-top:4px; border-top:0; }
 .template-jake .skill-detail-list li { margin:2px 0; }
