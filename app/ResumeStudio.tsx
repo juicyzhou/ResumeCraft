@@ -191,8 +191,9 @@ export default function ResumeStudio() {
   const [draggedSection, setDraggedSection] = useState<SectionId | null>(null);
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [samplePreset, setSamplePreset] = useState<SamplePreset>("extended");
-  const [pageCount, setPageCount] = useState(1);
-  const paperRef = useRef<HTMLElement>(null);
+  const [pageMetrics, setPageMetrics] = useState({ offsets: [0], contentHeight: 1019 });
+  const measurePaperRef = useRef<HTMLElement>(null);
+  const measureFlowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const stored = window.localStorage.getItem("jianxu-resume-v3") || window.localStorage.getItem("jianxu-resume-v2") || window.localStorage.getItem("jianxu-resume");
@@ -222,12 +223,36 @@ export default function ResumeStudio() {
   }, [data, template, skillsMode, atsMode, atsTheme, sectionOrder, samplePreset]);
 
   useEffect(() => {
-    const paper = paperRef.current;
-    if (!paper) return;
-    const measurePages = () => setPageCount(Math.max(1, Math.ceil(paper.scrollHeight / 1123)));
+    const paper = measurePaperRef.current;
+    const flow = measureFlowRef.current;
+    if (!paper || !flow) return;
+    const measurePages = () => {
+      const styles = window.getComputedStyle(paper);
+      const contentHeight = Math.max(1, 1123 - parseFloat(styles.paddingTop) - parseFloat(styles.paddingBottom));
+      const flowTop = flow.getBoundingClientRect().top;
+      const breakCandidates = Array.from(flow.querySelectorAll<HTMLElement>(".resume-section h3, .timeline-entry, .resume-section li, .body-copy, .education-section .entry-head"))
+        .map((element) => Math.round(element.getBoundingClientRect().top - flowTop))
+        .filter((offset, index, values) => offset > 0 && values.indexOf(offset) === index)
+        .sort((a, b) => a - b);
+      const offsets = [0];
+      let pageStart = 0;
+      while (pageStart + contentHeight < flow.scrollHeight - 1) {
+        const target = pageStart + contentHeight;
+        const earliestBalancedBreak = pageStart + contentHeight * 0.58;
+        const safeBreak = breakCandidates.filter((offset) => offset >= earliestBalancedBreak && offset <= target - 8).at(-1);
+        const nextStart = safeBreak && safeBreak > pageStart + 80 ? safeBreak : target;
+        offsets.push(nextStart);
+        pageStart = nextStart;
+      }
+      setPageMetrics((current) => {
+        const unchanged = Math.abs(current.contentHeight - contentHeight) < 0.5 && current.offsets.length === offsets.length && current.offsets.every((offset, index) => Math.abs(offset - offsets[index]) < 0.5);
+        return unchanged ? current : { offsets, contentHeight };
+      });
+    };
     const frame = window.requestAnimationFrame(measurePages);
     const observer = new ResizeObserver(measurePages);
     observer.observe(paper);
+    observer.observe(flow);
     document.fonts?.ready.then(measurePages);
     return () => {
       window.cancelAnimationFrame(frame);
@@ -438,6 +463,13 @@ export default function ResumeStudio() {
   const mainColumnOrder = sectionOrder.filter((id) => ["experience", "project"].includes(id));
   const timelineMainOrder = sectionOrder.filter((id) => ["experience", "project"].includes(id));
   const timelineSideOrder = sectionOrder.filter((id) => ["summary", "skills", "education"].includes(id));
+  const renderResumeBody = () => atsMode ? <>{renderOrderedSections()}</> : template === "markdown" || template === "research" ? <>{renderOrderedSections()}</> : template === "sidebar" ? <div className="resume-layout-sidebar">
+    <aside className="resume-sidebar">{renderOrderedSections(leftColumnOrder, false)}</aside>
+    <div className="resume-main">{renderOrderedSections(mainColumnOrder, false)}</div>
+  </div> : template === "timeline" ? <>
+    {resumeHeader}<div className="accent-rule"><i /></div>
+    <div className="resume-layout-timeline"><main>{renderOrderedSections(timelineMainOrder, false)}</main><aside>{renderOrderedSections(timelineSideOrder, false)}</aside></div>
+  </> : <>{renderOrderedSections()}</>;
 
   return (
     <main className="app-shell">
@@ -502,7 +534,7 @@ export default function ResumeStudio() {
 
         <section className={`preview-panel ${mobileView === "edit" ? "mobile-hidden" : ""}`}>
           <div className="preview-toolbar">
-            <div className="preview-meta"><div className="template-chip"><i style={{ background: currentTemplate.color }} />{currentTemplate.name}<span>{currentTemplate.note}</span></div><small>A4 · 自动 {pageCount} 页</small></div>
+            <div className="preview-meta"><div className="template-chip"><i style={{ background: currentTemplate.color }} />{currentTemplate.name}<span>{currentTemplate.note}</span></div><small>A4 · 自动 {pageMetrics.offsets.length} 页</small></div>
             <div className="ats-toolbar">
               <details className="ats-explainer">
                 <summary aria-label="了解什么是 ATS">?</summary>
@@ -521,22 +553,19 @@ export default function ResumeStudio() {
             <div className="zoom-control"><button onClick={() => setZoom((v) => Math.max(65, v - 5))}>−</button><span>{zoom}%</span><button onClick={() => setZoom((v) => Math.min(105, v + 5))}>＋</button></div>
           </div>
           <div className="paper-stage">
-            <article ref={paperRef} className={`resume-paper template-${template} ${atsMode ? `ats-strict ats-theme-${atsTheme}` : ""}`} style={{ "--zoom": zoom / 100 } as React.CSSProperties}>
-              {Array.from({ length: Math.max(0, pageCount - 1) }, (_, index) => <div className="auto-page-guide" key={`page-guide-${index}`} style={{ top: `${(index + 1) * 1123}px` }} aria-hidden="true"><span>第 {index + 2} 页 · A4 自动分页线</span></div>)}
-              {atsMode ? <>
-                {renderOrderedSections()}
-              </> : template === "markdown" || template === "research" ? <>
-                {renderOrderedSections()}
-              </> : template === "sidebar" ? <div className="resume-layout-sidebar">
-                <aside className="resume-sidebar">{renderOrderedSections(leftColumnOrder, false)}</aside>
-                <div className="resume-main">{renderOrderedSections(mainColumnOrder, false)}</div>
-              </div> : template === "timeline" ? <>
-                {resumeHeader}<div className="accent-rule"><i /></div>
-                <div className="resume-layout-timeline"><main>{renderOrderedSections(timelineMainOrder, false)}</main><aside>{renderOrderedSections(timelineSideOrder, false)}</aside></div>
-              </> : <>
-                {renderOrderedSections()}
-              </>}
+            <article ref={measurePaperRef} className={`resume-paper pagination-measure template-${template} ${atsMode ? `ats-strict ats-theme-${atsTheme}` : ""}`} aria-hidden="true">
+              <div ref={measureFlowRef} className="resume-flow-content">{renderResumeBody()}</div>
             </article>
+            <div className="resume-pages" style={{ "--zoom": zoom / 100 } as React.CSSProperties}>
+              {pageMetrics.offsets.map((pageOffset, pageIndex) => <div className="resume-page-shell" key={`resume-page-${pageIndex}`}>
+                <article className={`resume-paper resume-page template-${template} ${atsMode ? `ats-strict ats-theme-${atsTheme}` : ""}`} aria-label={`简历第 ${pageIndex + 1} 页，共 ${pageMetrics.offsets.length} 页`}>
+                  <div className="resume-page-viewport" style={{ height: `${pageMetrics.contentHeight}px` }}>
+                    <div className="resume-flow-content" style={{ transform: `translateY(-${pageOffset}px)` }}>{renderResumeBody()}</div>
+                  </div>
+                  <span className="page-number" aria-hidden="true">{pageIndex + 1} / {pageMetrics.offsets.length}</span>
+                </article>
+              </div>)}
+            </div>
           </div>
         </section>
       </div>
