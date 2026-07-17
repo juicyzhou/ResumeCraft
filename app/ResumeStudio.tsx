@@ -8,6 +8,7 @@ type SkillsMode = "keywords" | "detailed";
 type AtsTheme = "standard" | "markdown" | "business" | "academic" | "mono";
 type SectionId = "basic" | "summary" | "experience" | "project" | "education" | "skills";
 type ExportMode = "original" | "ats";
+type SamplePreset = "compact" | "extended";
 type WorkExperience = { id: string; company: string; role: string; date: string; detail: string };
 type ProjectExperience = { id: string; name: string; role: string; date: string; detail: string };
 
@@ -30,8 +31,8 @@ type ResumeData = {
 };
 type TextFieldKey = { [K in keyof ResumeData]: ResumeData[K] extends string ? K : never }[keyof ResumeData];
 
-const initialData: ResumeData = {
-  name: "尧舜禹",
+const compactInitialData: ResumeData = {
+  name: "周屿",
   title: "AI / 大模型应用工程师",
   location: "杭州",
   phone: "138 0013 8000",
@@ -54,6 +55,27 @@ const initialData: ResumeData = {
   ],
 };
 
+const extendedInitialData: ResumeData = {
+  ...compactInitialData,
+  name: "周屿",
+  summary: "7 年 AI 平台与后端研发经验，专注大模型应用、RAG 检索增强、Agent 工作流与高并发服务架构。曾负责企业级 AI 平台从技术选型、数据治理、模型评测到生产部署的完整建设，带领跨职能团队交付多个千万级调用系统。擅长把实验性模型能力沉淀为稳定、可观测、可持续迭代的工程产品，并通过量化指标推动业务落地。",
+  skills: "Python、PyTorch、Transformers、LangChain、RAG、Agent、FastAPI、Java、Spring Boot、Redis、Kafka、Elasticsearch、Kubernetes、vLLM、LLM Evaluation",
+  skillsDetail: "编程语言：熟练使用 Python、Java 与 SQL，掌握 TypeScript，具备扎实的数据结构、并发编程、设计模式和代码工程化能力。\n大模型应用：熟悉 PyTorch、Transformers、LangChain、RAG、Agent、Embedding、重排与 Prompt Engineering，具有模型微调、推理加速和效果评测经验。\n后端与数据：熟悉 FastAPI、Spring Boot、MySQL、Redis、Kafka、Elasticsearch，能够设计高并发、高可用、可观测的分布式系统。\n云原生与 MLOps：熟悉 Docker、Kubernetes、vLLM、GitHub Actions、Prometheus 与 Grafana，具备 GPU 资源调度、灰度发布和成本治理经验。\n团队与交付：具备技术方案评审、任务拆解、跨团队协作和新人培养经验，重视自动化测试、性能压测、文档沉淀与持续交付。",
+  educationDetail: "研究方向为自然语言处理、知识图谱与语义检索；核心课程 GPA 3.8/4.0，获研究生一等奖学金。参与省级重点实验室课题，在中文信息抽取与实体对齐方向完成工程验证。",
+  workExperiences: [
+    { id: "work-long-1", company: "星河智能科技", role: "AI 平台技术负责人", date: "2023.04 — 至今", detail: "主导企业知识助手与 RAG 平台从 0 到 1 建设，设计文档解析、混合检索、重排、权限过滤与引用溯源链路，核心场景回答准确率由 68% 提升至 89%。\n搭建覆盖 12 类业务场景、3200 条高质量样本的自动化评测集与回归流水线，将模型版本验证周期从 3 天缩短至 4 小时。\n使用 vLLM、Kubernetes 与动态批处理完成推理服务部署及弹性扩缩容，峰值吞吐提升 2.6 倍，单次调用成本降低 37%。\n带领 6 人研发小组制定平台路线图和工程规范，推动 18 个业务团队接入，服务月活用户超过 1.2 万。" },
+    { id: "work-long-2", company: "云栈网络科技", role: "高级后端开发工程师", date: "2020.07 — 2023.03", detail: "负责交易中台与开放平台核心服务，基于 Java、Spring Boot、Kafka 构建事件驱动架构，稳定支撑日均 3000 万次调用。\n推动慢查询治理、缓存分层与全链路压测，核心接口 P99 延迟从 420ms 降至 160ms，重大活动期间保持 99.99% 可用性。\n设计租户级限流、熔断降级和幂等机制，将重复交易异常降低 82%，并完善 Prometheus 告警与故障演练体系。\n推进 CI/CD 与自动化测试落地，核心仓库单元测试覆盖率提升至 78%，平均发布耗时由 50 分钟降低至 18 分钟。" },
+    { id: "work-long-3", company: "启明数据实验室", role: "算法工程师（实习）", date: "2019.06 — 2020.05", detail: "参与中文知识图谱构建，完成实体识别、关系抽取与实体对齐流水线，处理超过 800 万条行业文本。\n基于 BERT 优化命名实体识别模型，F1 从 82.4% 提升至 88.7%，并封装为可复用推理服务供 3 个项目使用。" },
+  ],
+  projects: [
+    { id: "project-long-1", name: "Atlas 企业级 RAG 平台", role: "技术负责人", date: "2023.08 — 2024.05", detail: "构建文档解析、向量化、权限过滤、混合检索、重排与评测一体化平台，支持 PDF、网页和结构化数据接入；累计沉淀 600 万知识切片。设计多租户隔离、增量索引与答案引用机制，使知识更新时延由小时级降低至分钟级，平台已服务 18 个业务团队。" },
+    { id: "project-long-2", name: "多智能体代码审查助手", role: "核心开发者", date: "2024.06 — 2024.11", detail: "设计规划、检索、审查与验证四类 Agent 协作流程，结合 AST、代码仓库上下文和规则引擎生成可溯源建议；建立离线评测集和人工反馈闭环，试点团队缺陷发现率提升 23%，误报率控制在 8% 以内。" },
+    { id: "project-long-3", name: "统一模型评测与观测中心", role: "架构设计", date: "2024.10 — 2025.03", detail: "建设覆盖准确性、安全性、延迟和成本的统一评测体系，接入 9 类模型与 26 个应用；通过版本对比、质量门禁和线上采样监控，将模型回归问题平均发现时间从 2 天缩短至 30 分钟。" },
+  ],
+};
+
+const initialData = extendedInitialData;
+
 type LegacyResumeData = Partial<ResumeData> & {
   company?: string; role?: string; workDate?: string; workDetail?: string;
   company2?: string; role2?: string; workDate2?: string; workDetail2?: string;
@@ -73,6 +95,7 @@ function normalizeResumeData(stored: LegacyResumeData): ResumeData {
   return {
     ...initialData,
     ...stored,
+    name: stored.name === "尧舜禹" ? "周屿" : (stored.name || initialData.name),
     workExperiences: workExperiences.length ? workExperiences : initialData.workExperiences,
     projects: projects.length ? projects : initialData.projects,
   };
@@ -167,18 +190,20 @@ export default function ResumeStudio() {
   const [sectionOrder, setSectionOrder] = useState<SectionId[]>(sectionFields.map((section) => section.id));
   const [draggedSection, setDraggedSection] = useState<SectionId | null>(null);
   const [showExportOptions, setShowExportOptions] = useState(false);
+  const [samplePreset, setSamplePreset] = useState<SamplePreset>("extended");
 
   useEffect(() => {
     const stored = window.localStorage.getItem("jianxu-resume-v3") || window.localStorage.getItem("jianxu-resume-v2") || window.localStorage.getItem("jianxu-resume");
     if (stored) {
       try {
-        const parsed = JSON.parse(stored) as { data: LegacyResumeData; template: Template; skillsMode?: SkillsMode; atsMode?: boolean; atsTheme?: AtsTheme; sectionOrder?: SectionId[] };
+        const parsed = JSON.parse(stored) as { data: LegacyResumeData; template: Template; skillsMode?: SkillsMode; atsMode?: boolean; atsTheme?: AtsTheme; sectionOrder?: SectionId[]; samplePreset?: SamplePreset };
         const isOldExample = parsed.data?.title === "产品设计师" && !parsed.data?.company2;
         setData(isOldExample ? initialData : normalizeResumeData(parsed.data || {}));
         setTemplate(templateMeta.some((item) => item.id === parsed.template) ? parsed.template : "classic");
         setSkillsMode(parsed.skillsMode || "detailed");
         setAtsMode(parsed.atsMode ?? true);
         setAtsTheme(atsThemes.some((item) => item.id === parsed.atsTheme) ? parsed.atsTheme! : "standard");
+        setSamplePreset(parsed.samplePreset || (parsed.data?.workExperiences?.length === 3 ? "extended" : "compact"));
         const validOrder = parsed.sectionOrder?.filter((id, index, values) => sectionFields.some((section) => section.id === id) && values.indexOf(id) === index);
         if (validOrder?.length === sectionFields.length) setSectionOrder(validOrder);
       } catch { /* keep the polished default */ }
@@ -188,11 +213,11 @@ export default function ResumeStudio() {
   useEffect(() => {
     setSaved(false);
     const timeout = window.setTimeout(() => {
-      window.localStorage.setItem("jianxu-resume-v3", JSON.stringify({ data, template, skillsMode, atsMode, atsTheme, sectionOrder }));
+      window.localStorage.setItem("jianxu-resume-v3", JSON.stringify({ data, template, skillsMode, atsMode, atsTheme, sectionOrder, samplePreset }));
       setSaved(true);
     }, 500);
     return () => window.clearTimeout(timeout);
-  }, [data, template, skillsMode, atsMode, atsTheme, sectionOrder]);
+  }, [data, template, skillsMode, atsMode, atsTheme, sectionOrder, samplePreset]);
 
   const update = (key: TextFieldKey, value: string) => setData((current) => ({ ...current, [key]: value }));
   const updateWorkExperience = (id: string, key: Exclude<keyof WorkExperience, "id">, value: string) => setData((current) => ({
@@ -219,6 +244,17 @@ export default function ResumeStudio() {
     ...current,
     projects: current.projects.filter((item) => item.id !== id),
   }));
+  const applySamplePreset = (preset: SamplePreset) => {
+    const source = preset === "extended" ? extendedInitialData : compactInitialData;
+    setData({
+      ...source,
+      workExperiences: source.workExperiences.map((item) => ({ ...item })),
+      projects: source.projects.map((item) => ({ ...item })),
+    });
+    setSamplePreset(preset);
+    setTemplate("classic");
+    setSectionOrder(sectionFields.map((section) => section.id));
+  };
   const currentTemplate = useMemo(() => templateMeta.find((item) => item.id === template)!, [template]);
   const visibleTemplates = useMemo(() => templateCategory === "all" ? templateMeta : templateMeta.filter((item) => item.category === templateCategory), [templateCategory]);
   const lines = (value: string) => value.split("\n").filter(Boolean);
@@ -262,6 +298,13 @@ export default function ResumeStudio() {
         <span className={`save-state ${saved ? "is-saved" : ""}`}><i />{saved ? "已自动保存" : "保存中"}</span>
       </div>
       <div className="editor-scroll">
+        <div className="sample-switch" role="group" aria-label="切换示例内容">
+          <span><b>示例内容</b><small>用于快速测试不同内容长度</small></span>
+          <div>
+            <button className={samplePreset === "compact" ? "active" : ""} onClick={() => applySamplePreset("compact")}>精简 1 页</button>
+            <button className={samplePreset === "extended" ? "active" : ""} onClick={() => applySamplePreset("extended")}>资深 2 页</button>
+          </div>
+        </div>
         {activeSection === "basic" && <div className="form-grid">
           <Field label="姓名" value={data.name} onChange={(v) => update("name", v)} />
           <Field label="求职方向" value={data.title} onChange={(v) => update("title", v)} />
@@ -369,7 +412,7 @@ export default function ResumeStudio() {
   const orderedSection = (id: SectionId, includeHeaderRule = true) => {
     if (id === "basic") return <div key={id} className="ordered-basic">{resumeHeader}{includeHeaderRule && <div className="accent-rule"><i /></div>}</div>;
     if (id === "summary") return <div key={id}>{summarySection}</div>;
-    if (id === "experience") return <div key={id}>{experienceSection}</div>;
+    if (id === "experience") return <div key={id}>{experienceSection}{samplePreset === "extended" && (atsMode || !["sidebar", "timeline"].includes(template)) && <div className="manual-page-break" aria-hidden="true"><span>第 2 页</span></div>}</div>;
     if (id === "project") return <div key={id}>{projectSection}</div>;
     if (id === "education") return <div key={id}>{educationSection}</div>;
     return <div key={id}>{skillsSection}</div>;
@@ -436,7 +479,7 @@ export default function ResumeStudio() {
               </span>
             </button>
           )})}
-          <div className="nav-bottom"><button onClick={() => { setData(initialData); setTemplate("classic"); setSectionOrder(sectionFields.map((section) => section.id)); }}>↺ <span>恢复示例</span></button></div>
+          <div className="nav-bottom"><button onClick={() => applySamplePreset(samplePreset)}>↺ <span>恢复当前示例</span></button></div>
         </nav>
 
         {editor}
@@ -445,6 +488,15 @@ export default function ResumeStudio() {
           <div className="preview-toolbar">
             <div className="template-chip"><i style={{ background: currentTemplate.color }} />{currentTemplate.name}<span>{currentTemplate.note}</span></div>
             <div className="ats-toolbar">
+              <details className="ats-explainer">
+                <summary aria-label="了解什么是 ATS">?</summary>
+                <div>
+                  <b>什么是 ATS？</b>
+                  <p>ATS（招聘管理系统）会读取简历文字、识别章节和关键词，帮助招聘方搜索与筛选候选人。</p>
+                  <p><strong>严格模式</strong>会改用标准单栏顺序，减少图标、双栏和装饰元素造成的解析风险；视觉模板更适合人工阅读。</p>
+                  <small>不同公司的 ATS 规则并不完全相同，因此无法承诺所有系统均 100% 一致。</small>
+                </div>
+              </details>
               <button className={`ats-toggle ${atsMode ? "active" : ""}`} onClick={() => setAtsMode((value) => !value)} aria-pressed={atsMode}>
                 <span className="ats-toggle-track"><i /></span><b>ATS 严格模式</b>
               </button>
