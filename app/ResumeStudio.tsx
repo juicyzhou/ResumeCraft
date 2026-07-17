@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Template = "classic" | "modern" | "calm" | "neural" | "compiler" | "blueprint" | "markdown" | "sidebar" | "timeline" | "jake" | "research" | "compact" | "bandBlue" | "bandGreen" | "bandWine";
 type TemplateCategory = "all" | "engineering" | "ai" | "general" | "visual";
@@ -191,6 +191,8 @@ export default function ResumeStudio() {
   const [draggedSection, setDraggedSection] = useState<SectionId | null>(null);
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [samplePreset, setSamplePreset] = useState<SamplePreset>("extended");
+  const [pageCount, setPageCount] = useState(1);
+  const paperRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const stored = window.localStorage.getItem("jianxu-resume-v3") || window.localStorage.getItem("jianxu-resume-v2") || window.localStorage.getItem("jianxu-resume");
@@ -218,6 +220,20 @@ export default function ResumeStudio() {
     }, 500);
     return () => window.clearTimeout(timeout);
   }, [data, template, skillsMode, atsMode, atsTheme, sectionOrder, samplePreset]);
+
+  useEffect(() => {
+    const paper = paperRef.current;
+    if (!paper) return;
+    const measurePages = () => setPageCount(Math.max(1, Math.ceil(paper.scrollHeight / 1123)));
+    const frame = window.requestAnimationFrame(measurePages);
+    const observer = new ResizeObserver(measurePages);
+    observer.observe(paper);
+    document.fonts?.ready.then(measurePages);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, []);
 
   const update = (key: TextFieldKey, value: string) => setData((current) => ({ ...current, [key]: value }));
   const updateWorkExperience = (id: string, key: Exclude<keyof WorkExperience, "id">, value: string) => setData((current) => ({
@@ -299,10 +315,10 @@ export default function ResumeStudio() {
       </div>
       <div className="editor-scroll">
         <div className="sample-switch" role="group" aria-label="切换示例内容">
-          <span><b>示例内容</b><small>用于快速测试不同内容长度</small></span>
+          <span><b>示例内容</b><small>页数由内容和模板自动计算</small></span>
           <div>
-            <button className={samplePreset === "compact" ? "active" : ""} onClick={() => applySamplePreset("compact")}>精简 1 页</button>
-            <button className={samplePreset === "extended" ? "active" : ""} onClick={() => applySamplePreset("extended")}>资深 2 页</button>
+            <button className={samplePreset === "compact" ? "active" : ""} onClick={() => applySamplePreset("compact")}>精简示例</button>
+            <button className={samplePreset === "extended" ? "active" : ""} onClick={() => applySamplePreset("extended")}>完整示例</button>
           </div>
         </div>
         {activeSection === "basic" && <div className="form-grid">
@@ -412,7 +428,7 @@ export default function ResumeStudio() {
   const orderedSection = (id: SectionId, includeHeaderRule = true) => {
     if (id === "basic") return <div key={id} className="ordered-basic">{resumeHeader}{includeHeaderRule && <div className="accent-rule"><i /></div>}</div>;
     if (id === "summary") return <div key={id}>{summarySection}</div>;
-    if (id === "experience") return <div key={id}>{experienceSection}{samplePreset === "extended" && (atsMode || !["sidebar", "timeline"].includes(template)) && <div className="manual-page-break" aria-hidden="true"><span>第 2 页</span></div>}</div>;
+    if (id === "experience") return <div key={id}>{experienceSection}</div>;
     if (id === "project") return <div key={id}>{projectSection}</div>;
     if (id === "education") return <div key={id}>{educationSection}</div>;
     return <div key={id}>{skillsSection}</div>;
@@ -486,7 +502,7 @@ export default function ResumeStudio() {
 
         <section className={`preview-panel ${mobileView === "edit" ? "mobile-hidden" : ""}`}>
           <div className="preview-toolbar">
-            <div className="template-chip"><i style={{ background: currentTemplate.color }} />{currentTemplate.name}<span>{currentTemplate.note}</span></div>
+            <div className="preview-meta"><div className="template-chip"><i style={{ background: currentTemplate.color }} />{currentTemplate.name}<span>{currentTemplate.note}</span></div><small>A4 · 自动 {pageCount} 页</small></div>
             <div className="ats-toolbar">
               <details className="ats-explainer">
                 <summary aria-label="了解什么是 ATS">?</summary>
@@ -505,7 +521,8 @@ export default function ResumeStudio() {
             <div className="zoom-control"><button onClick={() => setZoom((v) => Math.max(65, v - 5))}>−</button><span>{zoom}%</span><button onClick={() => setZoom((v) => Math.min(105, v + 5))}>＋</button></div>
           </div>
           <div className="paper-stage">
-            <article className={`resume-paper template-${template} ${atsMode ? `ats-strict ats-theme-${atsTheme}` : ""}`} style={{ "--zoom": zoom / 100 } as React.CSSProperties}>
+            <article ref={paperRef} className={`resume-paper template-${template} ${atsMode ? `ats-strict ats-theme-${atsTheme}` : ""}`} style={{ "--zoom": zoom / 100 } as React.CSSProperties}>
+              {Array.from({ length: Math.max(0, pageCount - 1) }, (_, index) => <div className="auto-page-guide" key={`page-guide-${index}`} style={{ top: `${(index + 1) * 1123}px` }} aria-hidden="true"><span>第 {index + 2} 页 · A4 自动分页线</span></div>)}
               {atsMode ? <>
                 {renderOrderedSections()}
               </> : template === "markdown" || template === "research" ? <>
