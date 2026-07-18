@@ -6,12 +6,15 @@ type Template = "classic" | "modern" | "calm" | "neural" | "compiler" | "bluepri
 type TemplateCategory = "all" | "engineering" | "ai" | "general" | "visual";
 type SkillsMode = "keywords" | "detailed";
 type AtsTheme = "standard" | "markdown" | "business" | "academic" | "mono";
-type SectionId = "basic" | "summary" | "experience" | "project" | "education" | "skills";
+type BuiltInSectionId = "basic" | "summary" | "experience" | "project" | "education" | "skills";
+type CustomSectionId = `custom-${string}`;
+type SectionId = BuiltInSectionId | CustomSectionId;
 type ExportMode = "original" | "ats";
 type SamplePreset = "compact" | "extended";
 type WorkExperience = { id: string; company: string; role: string; date: string; detail: string };
 type ProjectExperience = { id: string; name: string; role: string; date: string; detail: string };
 type EducationExperience = { id: string; school: string; degree: string; date: string; detail: string };
+type CustomSection = { id: CustomSectionId; title: string; content: string };
 
 type ResumeData = {
   name: string;
@@ -26,6 +29,7 @@ type ResumeData = {
   workExperiences: WorkExperience[];
   projects: ProjectExperience[];
   educations: EducationExperience[];
+  customSections: CustomSection[];
 };
 type TextFieldKey = { [K in keyof ResumeData]: ResumeData[K] extends string ? K : never }[keyof ResumeData];
 
@@ -50,6 +54,7 @@ const compactInitialData: ResumeData = {
   educations: [
     { id: "education-1", school: "浙江大学", degree: "计算机科学与技术 · 硕士", date: "2017.09 — 2020.06", detail: "研究方向为自然语言处理与知识图谱；核心课程 GPA 3.8/4.0，获研究生一等奖学金。" },
   ],
+  customSections: [],
 };
 
 const extendedInitialData: ResumeData = {
@@ -103,6 +108,7 @@ function normalizeResumeData(stored: LegacyResumeData): ResumeData {
     workExperiences: workExperiences.length ? workExperiences : initialData.workExperiences,
     projects: projects.length ? projects : initialData.projects,
     educations: educations.length ? educations : initialData.educations,
+    customSections: Array.isArray(stored.customSections) ? stored.customSections : [],
   };
 }
 
@@ -140,7 +146,7 @@ const templateCategories: { id: TemplateCategory; label: string }[] = [
   { id: "visual", label: "视觉展示" },
 ];
 
-const sectionFields: { id: SectionId; label: string; mark: string }[] = [
+const sectionFields: { id: BuiltInSectionId; label: string; mark: string }[] = [
   { id: "basic", label: "基本信息", mark: "01" },
   { id: "summary", label: "个人简介", mark: "02" },
   { id: "experience", label: "工作经历", mark: "03" },
@@ -183,7 +189,7 @@ function Editable({ value, onChange, className = "", multiline = false }: { valu
 export default function ResumeStudio() {
   const [data, setData] = useState<ResumeData>(initialData);
   const [template, setTemplate] = useState<Template>("classic");
-  const [activeSection, setActiveSection] = useState("basic");
+  const [activeSection, setActiveSection] = useState<SectionId>("basic");
   const [showTemplates, setShowTemplates] = useState(false);
   const [saved, setSaved] = useState(true);
   const [zoom, setZoom] = useState(88);
@@ -206,14 +212,17 @@ export default function ResumeStudio() {
       try {
         const parsed = JSON.parse(stored) as { data: LegacyResumeData; template: Template; skillsMode?: SkillsMode; atsMode?: boolean; atsTheme?: AtsTheme; sectionOrder?: SectionId[]; samplePreset?: SamplePreset };
         const isOldExample = parsed.data?.title === "产品设计师" && !parsed.data?.company2;
-        setData(isOldExample ? initialData : normalizeResumeData(parsed.data || {}));
+        const normalizedData = isOldExample ? initialData : normalizeResumeData(parsed.data || {});
+        setData(normalizedData);
         setTemplate(templateMeta.some((item) => item.id === parsed.template) ? parsed.template : "classic");
         setSkillsMode(parsed.skillsMode || "detailed");
         setAtsMode(parsed.atsMode ?? true);
         setAtsTheme(atsThemes.some((item) => item.id === parsed.atsTheme) ? parsed.atsTheme! : "standard");
         setSamplePreset(parsed.samplePreset || (parsed.data?.workExperiences?.length === 3 ? "extended" : "compact"));
-        const validOrder = parsed.sectionOrder?.filter((id, index, values) => sectionFields.some((section) => section.id === id) && values.indexOf(id) === index);
-        if (validOrder?.length === sectionFields.length) setSectionOrder(validOrder);
+        const availableIds: SectionId[] = [...sectionFields.map((section) => section.id), ...normalizedData.customSections.map((section) => section.id)];
+        const validOrder = (parsed.sectionOrder || []).filter((id, index, values) => availableIds.includes(id) && values.indexOf(id) === index);
+        const missingIds = availableIds.filter((id) => !validOrder.includes(id));
+        setSectionOrder([...validOrder, ...missingIds]);
       } catch { /* keep the polished default */ }
     }
   }, []);
@@ -235,17 +244,32 @@ export default function ResumeStudio() {
       const styles = window.getComputedStyle(paper);
       const contentHeight = Math.max(1, 1123 - parseFloat(styles.paddingTop) - parseFloat(styles.paddingBottom));
       const flowTop = flow.getBoundingClientRect().top;
-      const breakCandidates = Array.from(flow.querySelectorAll<HTMLElement>(".resume-section h3, .timeline-entry, .resume-section li, .body-copy, .education-section .entry-head"))
+      const elementBreakCandidates = Array.from(flow.querySelectorAll<HTMLElement>(".resume-section h3, .timeline-entry, .resume-section li, .body-copy, .education-section .entry-head"))
         .map((element) => Math.round(element.getBoundingClientRect().top - flowTop))
+      const textLineBreakCandidates = Array.from(flow.querySelectorAll<HTMLElement>(".body-copy, .resume-section li")).flatMap((element) => {
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        return Array.from(range.getClientRects()).map((rect) => Math.round(rect.top - flowTop));
+      });
+      const breakCandidates = [...elementBreakCandidates, ...textLineBreakCandidates]
         .filter((offset, index, values) => offset > 0 && values.indexOf(offset) === index)
         .sort((a, b) => a - b);
+      const sectionHeadings = Array.from(flow.querySelectorAll<HTMLElement>(".resume-section h3"))
+        .map((element) => ({
+          offset: Math.round(element.getBoundingClientRect().top - flowTop),
+          height: element.getBoundingClientRect().height,
+        }))
+        .sort((a, b) => a.offset - b.offset);
       const offsets = [0];
       let pageStart = 0;
       while (pageStart + contentHeight < flow.scrollHeight - 1) {
         const target = pageStart + contentHeight;
         const earliestBalancedBreak = pageStart + contentHeight * 0.58;
         const safeBreak = breakCandidates.filter((offset) => offset >= earliestBalancedBreak && offset <= target - 8).at(-1);
-        const nextStart = safeBreak && safeBreak > pageStart + 80 ? safeBreak : target;
+        let nextStart = safeBreak && safeBreak > pageStart + 80 ? safeBreak : target;
+        const lastHeading = sectionHeadings.filter((heading) => heading.offset >= pageStart && heading.offset < nextStart).at(-1);
+        const leavesHeadingOrphaned = lastHeading && nextStart - (lastHeading.offset + lastHeading.height) < 24;
+        if (leavesHeadingOrphaned && lastHeading.offset > pageStart + 80) nextStart = lastHeading.offset;
         offsets.push(nextStart);
         pageStart = nextStart;
       }
@@ -302,6 +326,21 @@ export default function ResumeStudio() {
     ...current,
     educations: current.educations.filter((item) => item.id !== id),
   }));
+  const addCustomSection = () => {
+    const id = `custom-${Date.now()}` as CustomSectionId;
+    setData((current) => ({ ...current, customSections: [...current.customSections, { id, title: "自定义章节", content: "" }] }));
+    setSectionOrder((current) => [...current, id]);
+    setActiveSection(id);
+  };
+  const updateCustomSection = (id: CustomSectionId, key: "title" | "content", value: string) => setData((current) => ({
+    ...current,
+    customSections: current.customSections.map((item) => item.id === id ? { ...item, [key]: value } : item),
+  }));
+  const removeCustomSection = (id: CustomSectionId) => {
+    setData((current) => ({ ...current, customSections: current.customSections.filter((item) => item.id !== id) }));
+    setSectionOrder((current) => current.filter((sectionId) => sectionId !== id));
+    setActiveSection((current) => current === id ? "basic" : current);
+  };
   const applySamplePreset = (preset: SamplePreset) => {
     const source = preset === "extended" ? extendedInitialData : compactInitialData;
     setData({
@@ -309,6 +348,7 @@ export default function ResumeStudio() {
       workExperiences: source.workExperiences.map((item) => ({ ...item })),
       projects: source.projects.map((item) => ({ ...item })),
       educations: source.educations.map((item) => ({ ...item })),
+      customSections: source.customSections.map((item) => ({ ...item })),
     });
     setSamplePreset(preset);
     setTemplate("classic");
@@ -316,6 +356,11 @@ export default function ResumeStudio() {
   };
   const currentTemplate = useMemo(() => templateMeta.find((item) => item.id === template)!, [template]);
   const visibleTemplates = useMemo(() => templateCategory === "all" ? templateMeta : templateMeta.filter((item) => item.category === templateCategory), [templateCategory]);
+  const allSectionFields = useMemo(() => [
+    ...sectionFields,
+    ...data.customSections.map((section, index) => ({ id: section.id as SectionId, label: section.title.trim() || `自定义章节 ${index + 1}`, mark: "+" })),
+  ], [data.customSections]);
+  const activeCustomSection = data.customSections.find((section) => section.id === activeSection);
   const lines = (value: string) => value.split("\n").filter(Boolean);
   const exportPdf = (mode: ExportMode) => {
     const previousMode = atsMode;
@@ -352,7 +397,7 @@ export default function ResumeStudio() {
       <div className="editor-head">
         <div>
           <p className="eyebrow">内容编辑</p>
-          <h2>{sectionFields.find((item) => item.id === activeSection)?.label}</h2>
+          <h2>{allSectionFields.find((item) => item.id === activeSection)?.label}</h2>
         </div>
         <span className={`save-state ${saved ? "is-saved" : ""}`}><i />{saved ? "已自动保存" : "保存中"}</span>
       </div>
@@ -421,6 +466,13 @@ export default function ResumeStudio() {
           <button className="add-entry-button" onClick={addEducation}><span>＋</span>新增教育经历</button>
           {!data.educations.length && <p className="empty-entry-tip">暂无教育经历，点击上方按钮添加。</p>}
         </div>}
+        {activeCustomSection && <div className="custom-section-editor">
+          <div className="custom-section-editor-head"><div><span>自定义大章节</span><small>章节会进入简历目录、排序、分页和 PDF 导出</small></div><button onClick={() => removeCustomSection(activeCustomSection.id)}>删除章节</button></div>
+          <div className="form-grid">
+            <Field label="章节标题" value={activeCustomSection.title} onChange={(v) => updateCustomSection(activeCustomSection.id, "title", v)} />
+            <Field label="章节内容" value={activeCustomSection.content} onChange={(v) => updateCustomSection(activeCustomSection.id, "content", v)} multiline />
+          </div>
+        </div>}
         <div className="editor-tip"><span>✦</span><p><b>小提示</b>右侧预览中的文字也可以直接点击修改，排版会保持不变。</p></div>
       </div>
     </aside>
@@ -477,18 +529,27 @@ export default function ResumeStudio() {
     </section>
   );
 
+  const customSection = (section: CustomSection) => (
+    <section className="resume-section custom-resume-section">
+      <h3>{section.title.trim() || "自定义章节"} <small>CUSTOM</small></h3>
+      {section.content.trim() && <Editable value={section.content} onChange={(value) => updateCustomSection(section.id, "content", value)} className="body-copy custom-section-copy" multiline />}
+    </section>
+  );
+
   const orderedSection = (id: SectionId, includeHeaderRule = true) => {
     if (id === "basic") return <div key={id} className="ordered-basic">{resumeHeader}{includeHeaderRule && <div className="accent-rule"><i /></div>}</div>;
     if (id === "summary") return <div key={id}>{summarySection}</div>;
     if (id === "experience") return <div key={id}>{experienceSection}</div>;
     if (id === "project") return <div key={id}>{projectSection}</div>;
     if (id === "education") return <div key={id}>{educationSection}</div>;
-    return <div key={id}>{skillsSection}</div>;
+    if (id === "skills") return <div key={id}>{skillsSection}</div>;
+    const section = data.customSections.find((item) => item.id === id);
+    return section ? <div key={id}>{customSection(section)}</div> : null;
   };
   const renderOrderedSections = (ids = sectionOrder, includeHeaderRule = true) => ids.map((id) => orderedSection(id, includeHeaderRule));
   const leftColumnOrder = sectionOrder.filter((id) => ["basic", "summary", "skills", "education"].includes(id));
-  const mainColumnOrder = sectionOrder.filter((id) => ["experience", "project"].includes(id));
-  const timelineMainOrder = sectionOrder.filter((id) => ["experience", "project"].includes(id));
+  const mainColumnOrder = sectionOrder.filter((id) => ["experience", "project"].includes(id) || id.startsWith("custom-"));
+  const timelineMainOrder = sectionOrder.filter((id) => ["experience", "project"].includes(id) || id.startsWith("custom-"));
   const timelineSideOrder = sectionOrder.filter((id) => ["summary", "skills", "education"].includes(id));
   const renderResumeBody = () => atsMode ? <>{renderOrderedSections()}</> : template === "markdown" || template === "research" ? <>{renderOrderedSections()}</> : template === "sidebar" ? <div className="resume-layout-sidebar">
     <aside className="resume-sidebar">{renderOrderedSections(leftColumnOrder, false)}</aside>
@@ -525,7 +586,8 @@ export default function ResumeStudio() {
         <nav className={`section-nav ${mobileView === "preview" ? "mobile-hidden" : ""}`} aria-label="简历章节">
           <p>简历内容</p>
           {sectionOrder.map((sectionId, index) => {
-            const section = sectionFields.find((item) => item.id === sectionId)!;
+            const section = allSectionFields.find((item) => item.id === sectionId);
+            if (!section) return null;
             return (
             <button
               key={section.id}
@@ -554,6 +616,7 @@ export default function ResumeStudio() {
               </span>
             </button>
           )})}
+          <button className="add-custom-section" onClick={addCustomSection}><span>＋</span>自定义章节</button>
           <div className="nav-bottom"><button onClick={() => applySamplePreset(samplePreset)}>↺ <span>恢复当前示例</span></button></div>
         </nav>
 
@@ -584,14 +647,18 @@ export default function ResumeStudio() {
               <div ref={measureFlowRef} className="resume-flow-content">{renderResumeBody()}</div>
             </article>
             <div className="resume-pages" style={{ "--zoom": zoom / 100 } as React.CSSProperties}>
-              {pageMetrics.offsets.map((pageOffset, pageIndex) => <div className="resume-page-shell" key={`resume-page-${pageIndex}`}>
-                <article className={`resume-paper resume-page template-${template} ${atsMode ? `ats-strict ats-theme-${atsTheme}` : ""}`} aria-label={`简历第 ${pageIndex + 1} 页，共 ${pageMetrics.offsets.length} 页`}>
-                  <div className="resume-page-viewport" style={{ height: `${pageMetrics.contentHeight}px` }}>
-                    <div className="resume-flow-content" style={{ transform: `translateY(-${pageOffset}px)` }}>{renderResumeBody()}</div>
-                  </div>
-                  <span className="page-number" aria-hidden="true">{pageIndex + 1} / {pageMetrics.offsets.length}</span>
-                </article>
-              </div>)}
+              {pageMetrics.offsets.map((pageOffset, pageIndex) => {
+                const nextPageOffset = pageMetrics.offsets[pageIndex + 1];
+                const pageContentHeight = nextPageOffset ? Math.min(pageMetrics.contentHeight, Math.max(1, nextPageOffset - pageOffset - 1)) : pageMetrics.contentHeight;
+                return <div className="resume-page-shell" key={`resume-page-${pageIndex}`}>
+                  <article className={`resume-paper resume-page template-${template} ${atsMode ? `ats-strict ats-theme-${atsTheme}` : ""}`} aria-label={`简历第 ${pageIndex + 1} 页，共 ${pageMetrics.offsets.length} 页`}>
+                    <div className="resume-page-viewport" style={{ height: `${pageContentHeight}px` }}>
+                      <div className="resume-flow-content" style={{ transform: `translateY(-${pageOffset}px)` }}>{renderResumeBody()}</div>
+                    </div>
+                    <span className="page-number" aria-hidden="true">{pageIndex + 1} / {pageMetrics.offsets.length}</span>
+                  </article>
+                </div>;
+              })}
             </div>
           </div>
         </section>
